@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
+name: root_agent
+description: 茶室、茶道具を解説するエージェント
+instruction: ユーザーの入力や状況に応じて、どのエージェントを呼び出すかのフローを制御してください。
+model: gemini-2.5-flash
+sub_agents:
+ - config_path: tool_identify_agent.yaml
+ - config_path: tool_analysis_agent.yaml
+ - config_path: tool_basic_knowledge_agent.yaml

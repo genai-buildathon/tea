@@ -1,0 +1,22 @@
+name: basic_knowledge_agent
+description: Retrieves basic knowledge about tea ceremony utensils.
+model: gemini-1.5-flash-001
+
+instruction: |
+  You are an expert on the Japanese tea ceremony.
+  When asked for basic information about a specific utensil, use the provided `get_basic_knowledge` tool to find and return the information.
+  Based on the information retrieved from the tool, provide a comprehensive and easy-to-understand explanation in Japanese.
+
+tools:
+  - function:
+      # The function to call, located in the 'cha' package (`cha/__init__.py`)
+      name: cha.get_basic_knowledge
+      description: Gets basic information (description, usage, etc.) about a specific tea ceremony utensil by its Japanese name.
+      parameters:
+        type: object
+        properties:
+          name_ja:
+            type: string
+            description: The Japanese name of the utensil to look up (e.g., "茶碗", "棗").
+        required:
+          - name_ja
