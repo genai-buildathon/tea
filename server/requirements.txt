@@ -8,3 +8,4 @@ uvicorn[standard]
 langchain
 google-adk
 google-genai
+python-dotenv

@@ -7,6 +7,13 @@ from typing import Dict, Optional
 import uuid
 import os
 
+# Load .env early (non-fatal if missing)
+try:
+    from dotenv import load_dotenv, find_dotenv
+    load_dotenv(find_dotenv(), override=False)
+except Exception:
+    pass
+
 # ADK imports
 from google.adk.agents import LiveRequestQueue
 from google.adk.runners import Runner
@@ -69,6 +76,37 @@ class MultimodalServer:
         self.active_connections: Dict[str, WebSocket] = {}
 
     
+    def _ensure_google_config(self) -> bool:
+        """Ensure we have either API key or ADC (gcloud) credentials.
+
+        - If ADC is available, populate `GOOGLE_CLOUD_PROJECT` from ADC's
+          detected project when missing, and default `GOOGLE_CLOUD_LOCATION`
+          to `us-central1` if not provided.
+        """
+        if os.getenv("GOOGLE_API_KEY"):
+            return True
+
+        project = os.getenv("GOOGLE_CLOUD_PROJECT")
+        location = os.getenv("GOOGLE_CLOUD_LOCATION")
+
+        # Try to detect Application Default Credentials from gcloud.
+        try:
+            from google.auth import default as google_auth_default
+            scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+            creds, detected_project = google_auth_default(scopes=scopes)
+            if creds:
+                if not project and detected_project:
+                    os.environ["GOOGLE_CLOUD_PROJECT"] = detected_project
+                    project = detected_project
+                if not location:
+                    # Reasonable default for Gemini/Vertex locations
+                    os.environ["GOOGLE_CLOUD_LOCATION"] = "us-central1"
+                    location = "us-central1"
+        except Exception:
+            pass
+
+        return bool(os.getenv("GOOGLE_API_KEY") or (project and location))
+
     async def connect(self, websocket: WebSocket, client_id: str):
         """WebSocket接続処理"""
         await websocket.accept()
@@ -124,16 +162,11 @@ class MultimodalServer:
                 session = s
                 break
 
-        # choose mode: use Google/Vertex if configured
-        has_google = bool(
-            os.getenv("GOOGLE_API_KEY")
-            or (os.getenv("GOOGLE_CLOUD_PROJECT") and os.getenv("GOOGLE_CLOUD_LOCATION"))
-        )
-
-        if not has_google:
+        # Ensure Vertex/Gemini config: API key or ADC via gcloud.
+        if not self._ensure_google_config():
             await self._send_error(
                 websocket,
-                "Vertex/Gemini の認証情報が未設定です。'GOOGLE_API_KEY' もしくは 'GOOGLE_CLOUD_PROJECT' と 'GOOGLE_CLOUD_LOCATION' を設定してください。",
+                "Vertex/Gemini の認証情報が未設定です。`gcloud auth application-default login` 実行後、必要なら `GOOGLE_CLOUD_PROJECT` と `GOOGLE_CLOUD_LOCATION`(例: us-central1) を設定してください。",
             )
             return
 
