@@ -5,3 +5,6 @@ websockets
 orjson
 python-multipart
 uvicorn[standard]
+langchain
+google-adk
+google-genai
