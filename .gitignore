@@ -1,3 +1,4 @@
 server/.venv/**
-server/front*/**
+server/front-demo/node_modules/**
+server/front-demo/.next/**
 __pycache__
