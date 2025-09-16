@@ -67,35 +67,44 @@ paths:
                 $ref: '#/components/schemas/ConnectionCreateResponse'
 
   /ws/{agent_key}/{connection_id}:
-    description: |
-      WebSocket endpoint for realtime multimodal interaction using a pre-created connection.
-      Not a formal HTTP request; documented here via a vendor extension for convenience.
-    parameters:
-      - name: agent_key
-        in: path
-        required: true
-        schema:
-          type: string
-          enum: [analyze, summary]
-      - name: connection_id
-        in: path
-        required: true
-        schema:
-          type: string
-    x-websocket:
-      url: ws://localhost:8000/ws/{agent_key}/{connection_id}
-      notes: |
-        Send JSON frames shaped like the clientMessages schemas or plain text for user text.
-      clientMessages:
-        oneOf:
-          - $ref: '#/components/schemas/WsClientMessageAudio'
-          - $ref: '#/components/schemas/WsClientMessageVideo'
-          - $ref: '#/components/schemas/WsClientMessageText'
-          - $ref: '#/components/schemas/WsClientMessageMode'
-      serverMessages:
-        oneOf:
-          - $ref: '#/components/schemas/WsServerMessageAudio'
-        description: Plain text frames are also used for model text responses.
+    get:
+      summary: Open a WebSocket for a connection
+      description: |
+        This endpoint upgrades to a WebSocket connection. Swagger UI cannot
+        open WebSocket connections directly via “Try it out”, but the path is
+        documented here for reference.
+
+        Connect with a WebSocket client to:
+        `ws://localhost:8000/ws/{agent_key}/{connection_id}` (or `wss://` in production).
+
+        After connecting, send JSON frames shaped like the client message
+        schemas. The server will stream back text frames and, when available,
+        audio chunks as base64-encoded data frames.
+
+        Example client frames:
+
+        - Text: `{ "type": "text", "data": "こんにちは" }`
+        - Video: `{ "type": "video", "data": "<base64-jpeg>", "mode": "webcam" }`
+        - Audio: `{ "type": "audio", "data": "<base64-pcm>" }`
+        - Mode: `{ "type": "mode", "data": "beginner" }`
+      parameters:
+        - name: agent_key
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [analyze, summary]
+        - name: connection_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '101':
+          description: Switching Protocols (WebSocket upgrade)
+        '426':
+          description: Upgrade Required (if attempted via plain HTTP)
+      tags: [WebSocket]
 
   /sse/{agent_key}/{connection_id}:
     get:
