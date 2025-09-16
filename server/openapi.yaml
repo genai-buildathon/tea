@@ -20,6 +20,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+
   /sessions/{user_id}:
     get:
       summary: List sessions for a user
@@ -38,24 +39,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionsListResponse'
-  /ws/{client_id}:
+
+  /connections/{agent_key}:
+    post:
+      summary: Create a new live stream connection
+      operationId: createConnection
+      parameters:
+        - name: agent_key
+          in: path
+          required: true
+          description: Agent to use (analyze|summary)
+          schema:
+            type: string
+            enum: [analyze, summary]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectionCreateRequest'
+      responses:
+        '200':
+          description: Created connection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionCreateResponse'
+
+  /ws/{agent_key}/{connection_id}:
     description: |
-      WebSocket endpoint for realtime multimodal interaction. Not a formal HTTP
-      request; documented here via a vendor extension for convenience.
+      WebSocket endpoint for realtime multimodal interaction using a pre-created connection.
+      Not a formal HTTP request; documented here via a vendor extension for convenience.
     parameters:
-      - name: client_id
+      - name: agent_key
         in: path
         required: true
-        description: Client identifier for the WebSocket session
+        schema:
+          type: string
+          enum: [analyze, summary]
+      - name: connection_id
+        in: path
+        required: true
         schema:
           type: string
     x-websocket:
-      url: ws://localhost:8000/ws/{client_id}
+      url: ws://localhost:8000/ws/{agent_key}/{connection_id}
       notes: |
-        The server accepts text frames that are either JSON objects of specific
-        message shapes (see clientMessages) or plain text (treated as user text).
-        The server sends plain text frames for model text responses and JSON
-        frames for audio as documented in serverMessages.
+        Send JSON frames shaped like the clientMessages schemas or plain text for user text.
       clientMessages:
         oneOf:
           - $ref: '#/components/schemas/WsClientMessageAudio'
@@ -65,12 +95,148 @@ paths:
       serverMessages:
         oneOf:
           - $ref: '#/components/schemas/WsServerMessageAudio'
-        description: |
-          In addition to the JSON audio frames above, plain text frames are used
-          for model text responses.
+        description: Plain text frames are also used for model text responses.
+
+  /sse/{agent_key}/{connection_id}:
+    get:
+      summary: Open an SSE downstream stream for a connection
+      operationId: openSse
+      parameters:
+        - name: agent_key
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [analyze, summary]
+        - name: connection_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Server-Sent Events stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: 
+                  data: hello\n\n
+
+  /sse/{agent_key}/{connection_id}/text:
+    post:
+      summary: Send user text into a connection
+      operationId: sseSendText
+      parameters:
+        - { name: agent_key, in: path, required: true, schema: { type: string, enum: [analyze, summary] } }
+        - { name: connection_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WsClientMessageText' }
+      responses:
+        '200': { description: OK }
+
+  /sse/{agent_key}/{connection_id}/video:
+    post:
+      summary: Send a video frame into a connection
+      operationId: sseSendVideo
+      parameters:
+        - { name: agent_key, in: path, required: true, schema: { type: string, enum: [analyze, summary] } }
+        - { name: connection_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WsClientMessageVideo' }
+      responses:
+        '200': { description: OK }
+
+  /sse/{agent_key}/{connection_id}/audio:
+    post:
+      summary: Send an audio chunk into a connection
+      operationId: sseSendAudio
+      parameters:
+        - { name: agent_key, in: path, required: true, schema: { type: string, enum: [analyze, summary] } }
+        - { name: connection_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WsClientMessageAudio' }
+      responses:
+        '200': { description: OK }
+
+  /sse/{agent_key}/{connection_id}/mode:
+    post:
+      summary: Set response mode for the connection
+      operationId: sseSetMode
+      parameters:
+        - { name: agent_key, in: path, required: true, schema: { type: string, enum: [analyze, summary] } }
+        - { name: connection_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WsClientMessageMode' }
+      responses:
+        '200': { description: OK }
+
+  /sessions/{session_id}/metadata:
+    post:
+      summary: Generate metadata using the summary agent over a session
+      operationId: generateMetadata
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hint:
+                  type: string
+                  description: Optional hint for summarization
+      responses:
+        '200':
+          description: Metadata text
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id: { type: string }
+                  metadata: { type: string }
 
 components:
   schemas:
+    ConnectionCreateRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: User identifier for the session
+        session_id:
+          type: string
+          nullable: true
+          description: Optional existing session id to reuse
+      required: [user_id]
+
+    ConnectionCreateResponse:
+      type: object
+      properties:
+        connection_id: { type: string }
+        user_id: { type: string }
+        session_id: { type: string }
+        agent_key:
+          type: string
+          enum: [analyze, summary]
+      required: [connection_id, user_id, session_id, agent_key]
     HealthResponse:
       type: object
       properties:
@@ -168,4 +334,3 @@ components:
           format: byte
           description: Base64-encoded audio bytes from model
       required: [type, data]
-

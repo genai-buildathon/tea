@@ -9,3 +9,5 @@ langchain
 google-adk
 google-genai
 python-dotenv
+pytest
+pytest-asyncio
