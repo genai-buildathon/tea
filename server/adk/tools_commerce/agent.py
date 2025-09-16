@@ -20,6 +20,7 @@ tools_commerce_agent = LlmAgent(
     name="tools_commerce_agent",
     description="Suggest purchase options for tools.",
     instruction=COMMERCE_INSTRUCTION + "\n既知の商品カテゴリ:" + ", ".join(COMMERCE_DB.keys()),
-    model="gemini-2.5-flash",
+    # Live API 対応モデル
+    model="gemini-2.0-flash-exp",
+    disallow_transfer_to_peers=True,
 )
-

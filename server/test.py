@@ -12,9 +12,16 @@ import asyncio
 import base64
 import json
 import websockets
+from urllib.parse import urlparse
 
-async def run(client_id: str, image_path: str, origin: str | None = None):
-    uri = f"ws://0.0.0.0:8000/ws/{client_id}"
+async def run(client_id: str, image_path: str, server_base: str | None = None, origin: str | None = None):
+    if server_base:
+        u = urlparse(server_base)
+        scheme = 'wss' if u.scheme == 'https' else 'ws'
+        hostport = u.netloc or u.path
+        uri = f"{scheme}://{hostport}/ws/{client_id}"
+    else:
+        uri = f"ws://localhost:8000/ws/{client_id}"
     connect_kwargs = {}
     if origin:
         connect_kwargs["origin"] = origin
@@ -31,7 +38,9 @@ async def run(client_id: str, image_path: str, origin: str | None = None):
         }
 
         await ws.send(json.dumps(msg))
-        print("sent video frame, waiting for responses (5s)...")
+        # Also send a short text to trigger response explicitly
+        await ws.send(json.dumps({"type":"text","data":"この画像を説明して。"}))
+        print("sent video frame + text, waiting for responses (100s)...")
 
         # listen for responses for a short period
         async def listener():
@@ -50,9 +59,10 @@ async def run(client_id: str, image_path: str, origin: str | None = None):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print("Usage: python test.py <client_id> <image_path> [origin]")
+        print("Usage: python test.py <client_id> <image_path> [server_base] [origin]")
         raise SystemExit(1)
     client_id = sys.argv[1]
     image_path = sys.argv[2]
-    origin = sys.argv[3] if len(sys.argv) > 3 else "http://localhost:8000"
-    asyncio.run(run(client_id, image_path, origin))
+    server_base = sys.argv[3] if len(sys.argv) > 3 else "http://localhost:8000"
+    origin = sys.argv[4] if len(sys.argv) > 4 else server_base
+    asyncio.run(run(client_id, image_path, server_base, origin))

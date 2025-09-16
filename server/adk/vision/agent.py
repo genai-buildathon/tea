@@ -15,5 +15,6 @@ vision_agent = Agent(
     model=VISION_MODEL,
     instruction=VISION_INSTRUCTION,
     tools=[],
+    # Prevent peer-to-peer transfer loops; escalate back to planner instead.
+    disallow_transfer_to_peers=True,
 )
-

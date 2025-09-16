@@ -16,6 +16,7 @@ tools_basic_knowledge_agent = LlmAgent(
     name="tools_basic_knowledge_agent",
     description="Basic usage and safety of tools (small KB).",
     instruction=BASIC_INSTRUCTION + "\n既知の項目:" + ", ".join(BASIC_KB.keys()),
-    model="gemini-2.5-flash",
+    # Live API 対応モデル
+    model="gemini-2.0-flash-exp",
+    disallow_transfer_to_peers=True,
 )
-

@@ -10,6 +10,7 @@ setting_analysis_agent = LlmAgent(
     name="setting_analysis_agent",
     description="Scene/setting understanding and reasoning agent.",
     instruction=SETTING_INSTRUCTION,
-    model="gemini-2.5-flash",
+    # Live API 対応モデル
+    model="gemini-2.0-flash-exp",
+    disallow_transfer_to_peers=True,
 )
-

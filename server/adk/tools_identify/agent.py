@@ -9,6 +9,8 @@ tools_identify_agent = LlmAgent(
     name="tools_identify_agent",
     description="Identify tools present in the scene.",
     instruction=TOOLS_IDENTIFY_INSTRUCTION,
-    model="gemini-2.5-flash",
+    # Live API 対応モデル
+    model="gemini-2.0-flash-exp",
+    # Avoid ping-pong transfers; return to planner rather than peers.
+    disallow_transfer_to_peers=True,
 )
-

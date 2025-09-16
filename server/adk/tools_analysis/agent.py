@@ -9,6 +9,7 @@ tools_analysis_agent = LlmAgent(
     name="tools_analysis_agent",
     description="Deeper background, trivia, origin about tools.",
     instruction=ANALYSIS_INSTRUCTION,
-    model="gemini-2.5-flash",
+    # Live API 対応モデル
+    model="gemini-2.0-flash-exp",
+    disallow_transfer_to_peers=True,
 )
-

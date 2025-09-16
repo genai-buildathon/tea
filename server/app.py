@@ -30,8 +30,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # 設定値
-VOICE_NAME = "Puck"  # 音声名
-SEND_SAMPLE_RATE = 16000  # 音声サンプルレート
+VOICE_NAME = os.getenv("VOICE_NAME", "Puck")  # 音声名
+SEND_SAMPLE_RATE = int(os.getenv("SEND_SAMPLE_RATE", "16000"))  # 音声サンプルレート
+ENABLE_AUDIO = os.getenv("ENABLE_AUDIO", "0") == "1"  # Live で音声入出力
+AUDIO_IDLE_END_MS = int(os.getenv("AUDIO_IDLE_END_MS", "800"))  # 無音で turn 終了までの猶予
 
 class SessionService(BaseSessionService):
     """ADK-compatible session service implementing BaseSessionService.
@@ -74,6 +76,11 @@ class MultimodalServer:
     def __init__(self, agent_config_path: Optional[str] = None):
         self.session_service = SessionService()
         self.active_connections: Dict[str, WebSocket] = {}
+        self._last_user_content: Dict[str, types.Content] = {}
+        # audio activity tracking per client
+        self._audio_state: Dict[str, dict] = {}
+        # per-user response mode (beginner/intermediate/advanced)
+        self._user_mode: Dict[str, str] = {}
 
     
     def _ensure_google_config(self) -> bool:
@@ -140,19 +147,33 @@ class MultimodalServer:
         live_request_queue = LiveRequestQueue()
         
         # RunConfigの設定
-        run_config = RunConfig(
-            streaming_mode=StreamingMode.BIDI,
-            speech_config=types.SpeechConfig(
-                voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                        voice_name=VOICE_NAME
+        if ENABLE_AUDIO:
+            run_config = RunConfig(
+                streaming_mode=StreamingMode.BIDI,
+                speech_config=types.SpeechConfig(
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=VOICE_NAME)
                     )
-                )
-            ),
-            response_modalities=["AUDIO", "TEXT"],
-            output_audio_transcription=types.AudioTranscriptionConfig(),
-            input_audio_transcription=types.AudioTranscriptionConfig(),
-        )
+                ),
+                response_modalities=[types.Modality.AUDIO, types.Modality.TEXT],
+                output_audio_transcription=types.AudioTranscriptionConfig(),
+                input_audio_transcription=types.AudioTranscriptionConfig(),
+                realtime_input_config=types.RealtimeInputConfig(
+                    automatic_activity_detection=types.AutomaticActivityDetection(
+                        start_of_speech_sensitivity=types.StartSensitivity.START_SENSITIVITY_HIGH,
+                        end_of_speech_sensitivity=types.EndSensitivity.END_SENSITIVITY_HIGH,
+                    )
+                ),
+            )
+        else:
+            # TEXT only (開発用)
+            run_config = RunConfig(
+                streaming_mode=StreamingMode.BIDI,
+                speech_config=None,
+                response_modalities=[types.Modality.TEXT],
+                output_audio_transcription=None,
+                input_audio_transcription=None,
+            )
         
         # Runnerでエージェントを使用
         # fetch session created earlier
@@ -180,26 +201,26 @@ class MultimodalServer:
             async with asyncio.TaskGroup() as tg:
                 # WebSocketメッセージ受信タスク
                 tg.create_task(
-                    self._handle_websocket_messages(websocket, audio_queue, video_queue),
+                    self._handle_websocket_messages(websocket, audio_queue, video_queue, live_request_queue, client_id),
                     name="MessageHandler"
                 )
 
                 # 音声処理・送信タスク
                 tg.create_task(
-                    self._process_and_send_audio(live_request_queue, audio_queue),
+                    self._process_and_send_audio(live_request_queue, audio_queue, client_id),
                     name="AudioProcessor"
                 )
 
                 # 動画処理・送信タスク
                 tg.create_task(
-                    self._process_and_send_video(live_request_queue, video_queue),
+                    self._process_and_send_video(live_request_queue, video_queue, client_id),
                     name="VideoProcessor"
                 )
 
                 # ADKレスポンス受信・処理タスク
                 tg.create_task(
                     self._receive_and_process_responses(
-                        runner, session, live_request_queue, run_config, websocket
+                        runner, session, live_request_queue, run_config, websocket, client_id
                     ),
                     name="ResponseHandler",
                 )
@@ -209,7 +230,7 @@ class MultimodalServer:
 
     # loop continues
     
-    async def _handle_websocket_messages(self, websocket: WebSocket, audio_queue: asyncio.Queue, video_queue: asyncio.Queue):
+    async def _handle_websocket_messages(self, websocket: WebSocket, audio_queue: asyncio.Queue, video_queue: asyncio.Queue, live_request_queue: LiveRequestQueue, client_id: str):
         """WebSocketメッセージ受信処理"""
         try:
             async for message in websocket.iter_text():
@@ -220,6 +241,7 @@ class MultimodalServer:
                     if message_type == "audio":
                         audio_bytes = base64.b64decode(data.get("data", ""))
                         await audio_queue.put(audio_bytes)
+                        logger.info("Enqueued audio chunk: %d bytes", len(audio_bytes) if audio_bytes else 0)
                         
                     elif message_type == "video":
                         video_bytes = base64.b64decode(data.get("data", ""))
@@ -229,6 +251,38 @@ class MultimodalServer:
                             "mode": video_mode,
                             "timestamp": data.get("timestamp")
                         })
+                        logger.info("Enqueued video frame: %d bytes (mode=%s)", len(video_bytes) if video_bytes else 0, video_mode)
+
+                    elif message_type == "mode":
+                        # Set per-user response mode
+                        raw = (data.get("data") or data.get("value") or "").strip().lower()
+                        # Allow Japanese aliases
+                        aliases = {
+                            "初級": "beginner",
+                            "中級": "intermediate",
+                            "上級": "advanced",
+                        }
+                        normalized = aliases.get(raw, raw)
+                        if normalized in ("beginner", "intermediate", "advanced"):
+                            self._user_mode[client_id] = normalized
+                            logger.info("Set mode for %s -> %s", client_id, normalized)
+                        else:
+                            logger.warning("Unknown mode '%s' from client %s", raw, client_id)
+
+                    elif message_type == "text":
+                        text = data.get("data", "")
+                        if text:
+                            parts = [
+                                types.Part.from_text(text=self._mode_instruction(client_id)),
+                                types.Part.from_text(text=text),
+                            ]
+                            content = types.Content(role="user", parts=parts)
+                            live_request_queue.send_content(content)
+                            # Save last user content for re-injection after agent transfer
+                            self._last_user_content[client_id] = content
+                            logger.info("Queued user text turn (%d chars)", len(text))
+                        else:
+                            logger.warning("Received empty text payload")
                         
                         
                 except json.JSONDecodeError:
@@ -241,12 +295,22 @@ class MultimodalServer:
         except Exception as e:
             logger.error(f"Error in message handler: {e}")
     
-    async def _process_and_send_audio(self, live_request_queue: LiveRequestQueue, audio_queue: asyncio.Queue):
+    async def _process_and_send_audio(self, live_request_queue: LiveRequestQueue, audio_queue: asyncio.Queue, client_id: str):
         """音声データ処理・送信"""
         while True:
             try:
                 data = await audio_queue.get()
-                
+                # Start-of-activity when first chunk after idle (ENABLE_AUDIO 時のみ採用)
+                if ENABLE_AUDIO:
+                    st = self._audio_state.setdefault(client_id, {"open": False, "last": 0.0})
+                    now = asyncio.get_event_loop().time()
+                    if not st["open"]:
+                        live_request_queue.send_activity_start()
+                        st["open"] = True
+                    st["last"] = now
+                    # schedule turn end after idle
+                    asyncio.create_task(self._schedule_audio_activity_end(live_request_queue, client_id))
+
                 live_request_queue.send_realtime(
                     types.Blob(
                         data=data,
@@ -258,18 +322,46 @@ class MultimodalServer:
                 
             except Exception as e:
                 logger.error(f"Error processing audio: {e}")
+
+    async def _schedule_audio_activity_end(self, live_request_queue: LiveRequestQueue, client_id: str):
+        await asyncio.sleep(AUDIO_IDLE_END_MS / 1000)
+        st = self._audio_state.get(client_id)
+        if not st:
+            return
+        now = asyncio.get_event_loop().time()
+        # if no audio since scheduled
+        if st["open"] and now - st["last"] >= (AUDIO_IDLE_END_MS / 1000) - 0.05:
+            live_request_queue.send_activity_end()
+            st["open"] = False
     
-    async def _process_and_send_video(self, live_request_queue: LiveRequestQueue, video_queue: asyncio.Queue):
+    async def _process_and_send_video(self, live_request_queue: LiveRequestQueue, video_queue: asyncio.Queue, client_id: str):
         """動画データ処理・送信"""
         while True:
             try:
                 video_data_item = await video_queue.get()
                 video_bytes = video_data_item.get("data")
-                
-                live_request_queue.send_realtime(
-                    types.Blob(
-                        data=video_bytes,
-                        mime_type="image/jpeg",
+                # Prefer a discrete user turn with the image to trigger a response
+                # reliably, rather than relying on realtime VAD.
+                # Place text first so history filter can pick it up if needed
+                parts = [
+                    types.Part.from_text(text=self._mode_instruction(client_id)),
+                    types.Part.from_text(text="この画像の内容を短く説明してください。道具があれば特定して。"),
+                    types.Part.from_bytes(data=video_bytes, mime_type="image/jpeg"),
+                ]
+                content = types.Content(role="user", parts=parts)
+                live_request_queue.send_content(content)
+                # Save last user content to replay after agent transfer
+                self._last_user_content[client_id] = content
+                logger.info("Queued image content turn to Live API (%d bytes)", len(video_bytes) if video_bytes else 0)
+                # Also send a small follow-up text nudge after short delay to help trigger a response
+                await asyncio.sleep(0.3)
+                live_request_queue.send_content(
+                    types.Content(
+                        role="user",
+                        parts=[
+                            types.Part.from_text(text=self._mode_instruction(client_id)),
+                            types.Part.from_text(text="上の画像について返答してください。"),
+                        ],
                     )
                 )
                 
@@ -277,6 +369,26 @@ class MultimodalServer:
                 
             except Exception as e:
                 logger.error(f"Error processing video: {e}")
+
+    def _get_mode(self, client_id: str) -> str:
+        """Get current response mode for the client (default: intermediate)."""
+        return self._user_mode.get(client_id, "intermediate")
+
+    def _mode_instruction(self, client_id: str) -> str:
+        """Return a concise style instruction based on the user's mode."""
+        mode = self._get_mode(client_id)
+        if mode == "beginner":
+            return (
+                "初級者モード: 優しい語り口で、専門用語を避け、短く、具体例を交えて説明してください。必要なら最後に理解確認の質問を1つ添えてください。"
+            )
+        if mode == "advanced":
+            return (
+                "上級者モード: 簡潔かつ技術的に、前提説明は省略して要点・注意点・限界を短く挙げてください。"
+            )
+        # default: intermediate
+        return (
+            "中級者モード: 要点を箇条書き中心で、必要十分な専門用語のみ使い、手順や根拠を簡潔に示してください。"
+        )
     
     async def _receive_and_process_responses(
         self,
@@ -285,11 +397,13 @@ class MultimodalServer:
         live_request_queue: LiveRequestQueue,
         run_config: RunConfig,
         websocket: WebSocket,
+        client_id: str,
     ):
         """ADKからのレスポンス受信・処理"""
         try:
             async for event in runner.run_live(
-                session=session,
+                user_id=client_id,
+                session_id=session.id if session else None,
                 live_request_queue=live_request_queue,
                 run_config=run_config,
             ):
@@ -307,6 +421,11 @@ class MultimodalServer:
                         # Text parts are sent as plain string frames.
                         if hasattr(part, "text") and part.text:
                             await websocket.send_text(part.text)
+                        # If model triggered agent transfer, schedule robust replays
+                        if getattr(part, "function_response", None) and getattr(part.function_response, "name", "") == "transfer_to_agent":
+                            content = self._last_user_content.get(client_id)
+                            if content is not None:
+                                asyncio.create_task(self._schedule_replay_after_transfer(live_request_queue, content))
                             
         except Exception as e:
             logger.error(f"Error in response handler: {e}")
@@ -319,6 +438,43 @@ class MultimodalServer:
             await websocket.send_text(error_message)
         except Exception:
             pass
+
+    async def _schedule_replay_after_transfer(self, live_request_queue: LiveRequestQueue, content: types.Content):
+        """After an agent transfer, Live reconnects; replay input a few times.
+
+        We send the image (if any) as realtime blob, then a short text prompt.
+        We attempt a few times with delays so at least one lands after the
+        reconnection completes.
+        """
+        delays = [0.8, 1.6, 2.4]
+        for idx, d in enumerate(delays, start=1):
+            await asyncio.sleep(d)
+            try:
+                # resend image as realtime blob if present
+                sent_blob = False
+                if content.parts:
+                    for p in content.parts:
+                        if getattr(p, 'inline_data', None) and getattr(p.inline_data, 'data', None):
+                            live_request_queue.send_realtime(
+                                types.Blob(data=p.inline_data.data, mime_type=p.inline_data.mime_type or 'image/jpeg')
+                            )
+                            sent_blob = True
+                            break
+                # send a concise text turn
+                prompt = None
+                if content.parts:
+                    for p in content.parts:
+                        if getattr(p, 'text', None):
+                            prompt = p.text
+                            break
+                if not prompt:
+                    prompt = "この入力を解析して要約してください。"
+                live_request_queue.send_content(
+                    types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
+                )
+                logger.info("Replayed user input attempt %d after transfer (blob=%s)", idx, sent_blob)
+            except Exception as e:
+                logger.error("Replay after transfer failed: %s", e)
 
 # FastAPIアプリケーション初期化
 app = FastAPI(title="ADK Video Analysis API")
