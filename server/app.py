@@ -1,4 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse, FileResponse
 import json
 import base64
 import asyncio
@@ -477,7 +478,7 @@ class MultimodalServer:
                 logger.error("Replay after transfer failed: %s", e)
 
 # FastAPIアプリケーション初期化
-app = FastAPI(title="ADK Video Analysis API")
+app = FastAPI(title="ADK Video Analysis API", docs_url=None, redoc_url=None, openapi_url=None)
 
 # エージェント設定パスを環境変数から取得
 agent_config_path = os.getenv("ADK_AGENT_CONFIG_PATH")
@@ -512,6 +513,59 @@ async def list_sessions(user_id: str):
     """List sessions for a user (debug aid)."""
     resp = await server.session_service.list_sessions(app_name="adk-video-app", user_id=user_id)
     return {"count": len(resp.sessions), "sessions": [s.id for s in resp.sessions]}
+
+
+@app.get("/openapi.yaml", include_in_schema=False)
+async def serve_openapi_yaml():
+    """Serve the repository's OpenAPI YAML spec file."""
+    spec_path = os.path.join(os.path.dirname(__file__), "openapi.yaml")
+    return FileResponse(spec_path, media_type="application/yaml")
+
+
+@app.get("/docs", include_in_schema=False)
+async def swagger_ui():
+    """Swagger UI that points to /openapi.yaml."""
+    html = """
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8"/>
+        <title>Swagger UI</title>
+        <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+      </head>
+      <body>
+        <div id="swagger-ui"></div>
+        <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+        <script>
+          window.ui = SwaggerUIBundle({
+            url: '/openapi.yaml',
+            dom_id: '#swagger-ui',
+            presets: [SwaggerUIBundle.presets.apis],
+          });
+        </script>
+      </body>
+    </html>
+    """
+    return HTMLResponse(content=html)
+
+
+@app.get("/redoc", include_in_schema=False)
+async def redoc_ui():
+    """ReDoc that points to /openapi.yaml."""
+    html = """
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8"/>
+        <title>ReDoc</title>
+        <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+      </head>
+      <body>
+        <redoc spec-url="/openapi.yaml"></redoc>
+      </body>
+    </html>
+    """
+    return HTMLResponse(content=html)
 
 if __name__ == "__main__":
     import uvicorn
