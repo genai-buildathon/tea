@@ -1,0 +1,68 @@
+# Files ignored when uploading sources to Google Cloud (Cloud Build / Cloud Run)
+# Syntax is the same as .gitignore
+# Docs: https://cloud.google.com/sdk/gcloud/reference/topic/gcloudignore
+
+# This file itself
+.gcloudignore
+
+# VCS
+.git
+.gitignore
+
+# Python: virtual envs and caches
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.cache/
+.tox/
+.hypothesis/
+.coverage
+pip-wheel-metadata/
+site-packages/
+
+# Node (just in case)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Build/packaging output
+build/
+dist/
+
+# Tests and docs (not needed in image build)
+tests/
+docs/
+
+# Local env/config
+.env
+
+# Editor/OS
+.DS_Store
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+
+# Large/local assets not needed at runtime
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.mp4
+*.mov
+*.avi
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+

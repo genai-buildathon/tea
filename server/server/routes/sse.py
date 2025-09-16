@@ -77,11 +77,16 @@ async def sse_stream_with_agent(agent_key: str, connection_id: str):
         runner = Runner(agent=selected_agent, app_name="adk-video-app", session_service=server.session_service)
 
         sse_sink = server.SseSink(outbound_queue)
-        audio_task = asyncio.create_task(server._process_and_send_audio(live_request_queue, audio_queue, client_id))
-        video_task = asyncio.create_task(server._process_and_send_video(live_request_queue, video_queue, client_id))
+        # Use the provided connection_id as the client key
+        audio_task = asyncio.create_task(
+            server._process_and_send_audio(live_request_queue, audio_queue, connection_id)
+        )
+        video_task = asyncio.create_task(
+            server._process_and_send_video(live_request_queue, video_queue, connection_id)
+        )
         resp_task = asyncio.create_task(
             server._receive_and_process_responses(
-                runner, session, live_request_queue, run_config, sse_sink, client_id
+                runner, session, live_request_queue, run_config, sse_sink, connection_id
             )
         )
         server._sse_clients[state_key] = {
