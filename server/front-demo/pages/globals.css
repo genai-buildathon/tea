@@ -1,0 +1,36 @@
+:root {
+  --bg: #0b0f14;
+  --panel: #111723;
+  --text: #e7eef7;
+  --muted: #9fb0c7;
+  --accent: #2bb673;
+  --accent2: #5ea5ff;
+  --border: #1b2533;
+}
+
+html, body, #__next { height: 100%; }
+body { background: var(--bg); color: var(--text); margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+.container { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+h1 { font-size: 20px; font-weight: 700; }
+h2 { font-size: 16px; font-weight: 600; margin: 0 0 12px; }
+
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; }
+.row { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+.row label { min-width: 130px; color: var(--muted); }
+
+input, select { background: #0d1320; color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 6px; min-width: 220px; }
+button { background: var(--accent2); color: white; border: none; border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.tabs button { background: #0d1320; }
+.tabs .active { background: var(--accent); }
+
+.log { background: #05070a; color: #d1e2ff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; height: 240px; overflow: auto; white-space: pre-wrap; }
+
+.info { margin-top: 8px; color: var(--muted); }
+code { background: #0d1320; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
+
+footer { margin: 24px 0; color: var(--muted); }
+

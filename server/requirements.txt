@@ -1,0 +1,13 @@
+fastapi
+pydantic
+pydantic-settings
+websockets
+orjson
+python-multipart
+uvicorn[standard]
+langchain
+google-adk
+google-genai
+python-dotenv
+pytest
+pytest-asyncio

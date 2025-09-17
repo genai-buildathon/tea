@@ -1,0 +1,345 @@
+openapi: 3.1.0
+info:
+  title: ADK Video Analysis API
+  version: 1.0.0
+  description: |
+    FastAPI backend for multimodal live analysis using ADK. Includes a WebSocket
+    endpoint for realtime audio/video/text and simple HTTP utilities.
+servers:
+  - url: http://localhost:8000
+    description: Local development
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /sessions/{user_id}:
+    get:
+      summary: List sessions for a user
+      operationId: listUserSessions
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sessions response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionsListResponse'
+
+  /connections/{agent_key}:
+    post:
+      summary: Create a new live stream connection
+      operationId: createConnection
+      parameters:
+        - name: agent_key
+          in: path
+          required: true
+          description: Agent to use (analyze|summary)
+          schema:
+            type: string
+            enum: [analyze, summary]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectionCreateRequest'
+      responses:
+        '200':
+          description: Created connection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionCreateResponse'
+
+  /ws/{agent_key}/{connection_id}:
+    get:
+      summary: Open a WebSocket for a connection
+      description: |
+        This endpoint upgrades to a WebSocket connection. Swagger UI cannot
+        open WebSocket connections directly via “Try it out”, but the path is
+        documented here for reference.
+
+        Connect with a WebSocket client to:
+        `ws://localhost:8000/ws/{agent_key}/{connection_id}` (or `wss://` in production).
+
+        After connecting, send JSON frames shaped like the client message
+        schemas. The server will stream back text frames and, when available,
+        audio chunks as base64-encoded data frames.
+
+        Example client frames:
+
+        - Text: `{ "type": "text", "data": "こんにちは" }`
+        - Video: `{ "type": "video", "data": "<base64-jpeg>", "mode": "webcam" }`
+        - Audio: `{ "type": "audio", "data": "<base64-pcm>" }`
+        - Mode: `{ "type": "mode", "data": "beginner" }`
+      parameters:
+        - name: agent_key
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [analyze, summary]
+        - name: connection_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '101':
+          description: Switching Protocols (WebSocket upgrade)
+        '426':
+          description: Upgrade Required (if attempted via plain HTTP)
+      tags: [WebSocket]
+
+  /sse/{agent_key}/{connection_id}:
+    get:
+      summary: Open an SSE downstream stream for a connection
+      operationId: openSse
+      parameters:
+        - name: agent_key
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [analyze, summary]
+        - name: connection_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Server-Sent Events stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: 
+                  data: hello\n\n
+
+  /sse/{agent_key}/{connection_id}/text:
+    post:
+      summary: Send user text into a connection
+      operationId: sseSendText
+      parameters:
+        - { name: agent_key, in: path, required: true, schema: { type: string, enum: [analyze, summary] } }
+        - { name: connection_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WsClientMessageText' }
+      responses:
+        '200': { description: OK }
+
+  /sse/{agent_key}/{connection_id}/video:
+    post:
+      summary: Send a video frame into a connection
+      operationId: sseSendVideo
+      parameters:
+        - { name: agent_key, in: path, required: true, schema: { type: string, enum: [analyze, summary] } }
+        - { name: connection_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WsClientMessageVideo' }
+      responses:
+        '200': { description: OK }
+
+  /sse/{agent_key}/{connection_id}/audio:
+    post:
+      summary: Send an audio chunk into a connection
+      operationId: sseSendAudio
+      parameters:
+        - { name: agent_key, in: path, required: true, schema: { type: string, enum: [analyze, summary] } }
+        - { name: connection_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WsClientMessageAudio' }
+      responses:
+        '200': { description: OK }
+
+  /sse/{agent_key}/{connection_id}/mode:
+    post:
+      summary: Set response mode for the connection
+      operationId: sseSetMode
+      parameters:
+        - { name: agent_key, in: path, required: true, schema: { type: string, enum: [analyze, summary] } }
+        - { name: connection_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WsClientMessageMode' }
+      responses:
+        '200': { description: OK }
+
+  /sessions/{session_id}/metadata:
+    post:
+      summary: Generate metadata using the summary agent over a session
+      operationId: generateMetadata
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hint:
+                  type: string
+                  description: Optional hint for summarization
+      responses:
+        '200':
+          description: Metadata text
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id: { type: string }
+                  metadata: { type: string }
+
+components:
+  schemas:
+    ConnectionCreateRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: User identifier for the session
+        session_id:
+          type: string
+          nullable: true
+          description: Optional existing session id to reuse
+      required: [user_id]
+
+    ConnectionCreateResponse:
+      type: object
+      properties:
+        connection_id: { type: string }
+        user_id: { type: string }
+        session_id: { type: string }
+        agent_key:
+          type: string
+          enum: [analyze, summary]
+      required: [connection_id, user_id, session_id, agent_key]
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+        active_connections:
+          type: integer
+          minimum: 0
+          example: 1
+      required: [status, active_connections]
+
+    SessionsListResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+          minimum: 0
+          example: 2
+        sessions:
+          type: array
+          items:
+            type: string
+          example: ["3f2f8d2a-0b6a-4a67-a5e5-2b9c1c1e1e1e", "9a7b1c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d"]
+      required: [count, sessions]
+
+    WsClientMessageAudio:
+      type: object
+      description: Send PCM audio chunk as base64
+      properties:
+        type:
+          type: string
+          enum: [audio]
+        data:
+          type: string
+          format: byte
+          description: Base64-encoded PCM (mime 'audio/pcm;rate={SEND_SAMPLE_RATE}')
+      required: [type, data]
+
+    WsClientMessageVideo:
+      type: object
+      description: Send a single JPEG frame as base64
+      properties:
+        type:
+          type: string
+          enum: [video]
+        data:
+          type: string
+          format: byte
+          description: Base64-encoded JPEG bytes
+        mode:
+          type: string
+          description: Source hint, e.g. 'webcam' or 'upload'
+          example: webcam
+        timestamp:
+          type: number
+          description: Optional client-side timestamp (ms)
+      required: [type, data]
+
+    WsClientMessageText:
+      type: object
+      description: Send user text
+      properties:
+        type:
+          type: string
+          enum: [text]
+        data:
+          type: string
+      required: [type, data]
+
+    WsClientMessageMode:
+      type: object
+      description: |
+        Set response style mode for this client. Accepted values are
+        'beginner', 'intermediate', or 'advanced'. Japanese aliases are also
+        accepted by the server: '初級' → beginner, '中級' → intermediate, '上級' → advanced.
+      properties:
+        type:
+          type: string
+          enum: [mode]
+        data:
+          type: string
+          enum: [beginner, intermediate, advanced]
+      required: [type, data]
+
+    WsServerMessageAudio:
+      type: object
+      description: Model audio response chunk as base64
+      properties:
+        type:
+          type: string
+          enum: [audio]
+        data:
+          type: string
+          format: byte
+          description: Base64-encoded audio bytes from model
+      required: [type, data]

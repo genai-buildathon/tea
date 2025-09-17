@@ -1,0 +1,31 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+
+# Tests and tooling caches
+.pytest_cache/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+
+# Local env files (do not ship secrets)
+.env
+
+# OS junk
+.DS_Store
+
+# Large/local assets not needed at runtime
+*.jpg
+*.jpeg
+*.png
+*.gif
