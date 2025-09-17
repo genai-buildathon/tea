@@ -53,16 +53,18 @@ async def generate_metadata(session_id: str, payload: dict = Body(default={})): 
     # Collect streamed text into a single string
     chunks: list[str] = []
     try:
-        async for event in runner.run_live(
-            user_id=session.user_id,
-            session_id=session.id,
-            live_request_queue=live_request_queue,
-            run_config=run_config,
-        ):
-            if event.content and event.content.parts:
-                for part in event.content.parts:
-                    if getattr(part, "text", None):
-                        chunks.append(part.text)
+        # Guard: avoid exceeding Live API concurrent session quota
+        async with server.live_session_slot():
+            async for event in runner.run_live(
+                user_id=session.user_id,
+                session_id=session.id,
+                live_request_queue=live_request_queue,
+                run_config=run_config,
+            ):
+                if event.content and event.content.parts:
+                    for part in event.content.parts:
+                        if getattr(part, "text", None):
+                            chunks.append(part.text)
     except Exception as e:
         logger.error("Summarizer run failed for session %s: %s", session_id, e)
         raise HTTPException(status_code=500, detail=str(e))

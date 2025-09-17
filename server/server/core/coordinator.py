@@ -4,6 +4,7 @@ import logging
 import os
 import json
 from typing import Dict, Optional
+from contextlib import asynccontextmanager
 
 from fastapi import WebSocket
 
@@ -35,6 +36,21 @@ class MultimodalServer:
         self._user_mode: Dict[str, str] = {}
         # For SSE users, a simple per-client state bucket (created by app routes)
         self._sse_clients: Dict[str, dict] = {}
+        # Global limiter for concurrent live sessions to avoid RESOURCE_EXHAUSTED
+        self._live_slots = asyncio.Semaphore(settings.LIVE_SESSIONS_MAX)
+        self._live_in_use = 0
+
+    @asynccontextmanager
+    async def live_session_slot(self):
+        await self._live_slots.acquire()
+        self._live_in_use += 1
+        logger.info("[live] acquired slot (%d/%d)", self._live_in_use, settings.LIVE_SESSIONS_MAX)
+        try:
+            yield
+        finally:
+            self._live_slots.release()
+            self._live_in_use = max(0, self._live_in_use - 1)
+            logger.info("[live] released slot (%d/%d)", self._live_in_use, settings.LIVE_SESSIONS_MAX)
 
     async def process_media_stream(self, agent, websocket: WebSocket, connection_id: str):
         """End-to-end WS media stream orchestration (mirrors previous app.py)."""
@@ -107,18 +123,28 @@ class MultimodalServer:
             async def send_text(self, data: str):
                 await self.ws.send_text(data)
 
+        # Run tasks explicitly so we can cancel cleanly on disconnect
+        ws_task = asyncio.create_task(_handle_websocket_messages(), name=f"ws-messages:{connection_id}")
+        audio_task = asyncio.create_task(self._process_and_send_audio(live_request_queue, audio_queue, connection_id), name=f"audio-proc:{connection_id}")
+        video_task = asyncio.create_task(self._process_and_send_video(live_request_queue, video_queue, connection_id), name=f"video-proc:{connection_id}")
+        resp_task = asyncio.create_task(self._receive_and_process_responses(runner, session, live_request_queue, run_config, _WebSocketSink(websocket), connection_id), name=f"resp-handler:{connection_id}")
+
         try:
-            async with asyncio.TaskGroup() as tg:
-                tg.create_task(_handle_websocket_messages(), name="WSMessages")
-                tg.create_task(self._process_and_send_audio(live_request_queue, audio_queue, connection_id), name="AudioProc")
-                tg.create_task(self._process_and_send_video(live_request_queue, video_queue, connection_id), name="VideoProc")
-                tg.create_task(self._receive_and_process_responses(runner, session, live_request_queue, run_config, _WebSocketSink(websocket), connection_id), name="RespHandler")
+            # Wait until either the websocket ends or the response handler ends
+            done, pending = await asyncio.wait({ws_task, resp_task}, return_when=asyncio.FIRST_COMPLETED)
         except Exception as e:
             logger.error("Error in media stream processing for conn %s: %s", connection_id, e)
             try:
                 await websocket.send_text(str(e))
             except Exception:
                 pass
+        finally:
+            for t in (ws_task, audio_task, video_task, resp_task):
+                if not t.done():
+                    t.cancel()
+            await asyncio.gather(ws_task, audio_task, video_task, resp_task, return_exceptions=True)
+            # Ensure we drop the connection reference
+            self.disconnect(connection_id)
 
     def build_run_config(self) -> RunConfig:
         if settings.ENABLE_AUDIO:
@@ -268,24 +294,25 @@ class MultimodalServer:
 
     async def _receive_and_process_responses(self, runner: Runner, session, live_request_queue: LiveRequestQueue, run_config: RunConfig, sink, connection_id: str):
         try:
-            async for event in runner.run_live(
-                user_id=self.connection_index.get(connection_id, {}).get("user_id"),
-                session_id=session.id if session else None,
-                live_request_queue=live_request_queue,
-                run_config=run_config,
-            ):
-                if event.content and event.content.parts:
-                    for part in event.content.parts:
-                        if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
-                            b64_audio = base64.b64encode(part.inline_data.data).decode("utf-8")
-                            msg = json.dumps({"type": "audio", "data": b64_audio}, separators=(",", ":"))
-                            await sink.send_text(msg)
-                        if hasattr(part, "text") and part.text:
-                            await sink.send_text(part.text)
-                        if getattr(part, "function_response", None) and getattr(part.function_response, "name", "") == "transfer_to_agent":
-                            content = self._last_user_content.get(connection_id)
-                            if content is not None:
-                                asyncio.create_task(self._schedule_replay_after_transfer(live_request_queue, content))
+            async with self.live_session_slot():
+                async for event in runner.run_live(
+                    user_id=self.connection_index.get(connection_id, {}).get("user_id"),
+                    session_id=session.id if session else None,
+                    live_request_queue=live_request_queue,
+                    run_config=run_config,
+                ):
+                    if event.content and event.content.parts:
+                        for part in event.content.parts:
+                            if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
+                                b64_audio = base64.b64encode(part.inline_data.data).decode("utf-8")
+                                msg = json.dumps({"type": "audio", "data": b64_audio}, separators=(",", ":"))
+                                await sink.send_text(msg)
+                            if hasattr(part, "text") and part.text:
+                                await sink.send_text(part.text)
+                            if getattr(part, "function_response", None) and getattr(part.function_response, "name", "") == "transfer_to_agent":
+                                content = self._last_user_content.get(connection_id)
+                                if content is not None:
+                                    asyncio.create_task(self._schedule_replay_after_transfer(live_request_queue, content))
         except Exception as e:
             try:
                 await sink.send_text(str(e))
