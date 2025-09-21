@@ -102,6 +102,20 @@ const translations = {
     loggingOut: "ログアウト中...",
     logoutError: "ログアウトに失敗しました",
     sentFrame: "送信されたフレーム",
+    // オンボーディング
+    welcomeToAnalyzer: "Tea Ceremony Analyzerへようこそ",
+    selectLanguage: "使用する言語を選択してください",
+    teaCeremonyExperience: "茶道の経験レベルを教えてください",
+    tailoredExplanations: "あなたに最適な解説レベルを提供します",
+    setupComplete: "設定が完了しました！",
+    welcomeToTeaCeremony: "茶道の世界へようこそ",
+    bestExperience: "あなたの設定に基づいて、最適な体験をお届けします。",
+    yourSettings: "あなての設定",
+    experienceLevel: "経験レベル:",
+    getStarted: "始める",
+    continue: "続ける",
+    complete: "完了",
+    back: "戻る",
   },
   en: {
     // サイドバー
@@ -190,6 +204,21 @@ const translations = {
     loggingOut: "Logging out...",
     logoutError: "Logout failed",
     sentFrame: "Sent Frame",
+    // オンボーディング
+    welcomeToAnalyzer: "Welcome to Tea Ceremony Analyzer",
+    selectLanguage: "Please select your preferred language",
+    teaCeremonyExperience: "What's your tea ceremony experience level?",
+    tailoredExplanations: "We'll provide explanations tailored to your level",
+    setupComplete: "Setup Complete!",
+    welcomeToTeaCeremony: "Welcome to the world of tea ceremony",
+    bestExperience:
+      "We'll provide you with the best experience based on your preferences.",
+    yourSettings: "Your Settings",
+    experienceLevel: "Experience:",
+    getStarted: "Get Started",
+    continue: "Continue",
+    complete: "Complete",
+    back: "Back",
   },
   es: {
     // サイドバー
@@ -279,6 +308,22 @@ const translations = {
     loggingOut: "Cerrando sesión...",
     logoutError: "Error al cerrar sesión",
     sentFrame: "Marco Enviado",
+    // オンボーディング
+    welcomeToAnalyzer: "Bienvenido al Analizador de Ceremonia del Té",
+    selectLanguage: "Por favor selecciona tu idioma preferido",
+    teaCeremonyExperience:
+      "¿Cuál es tu nivel de experiencia en la ceremonia del té?",
+    tailoredExplanations: "Proporcionaremos explicaciones adaptadas a tu nivel",
+    setupComplete: "¡Configuración Completa!",
+    welcomeToTeaCeremony: "Bienvenido al mundo de la ceremonia del té",
+    bestExperience:
+      "Te proporcionaremos la mejor experiencia basada en tus preferencias.",
+    yourSettings: "Tu Configuración",
+    experienceLevel: "Experiencia:",
+    getStarted: "Comenzar",
+    continue: "Continuar",
+    complete: "Completar",
+    back: "Atrás",
   },
 };
 

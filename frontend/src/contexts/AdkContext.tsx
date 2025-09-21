@@ -6,7 +6,9 @@ import React, {
   useRef,
   useCallback,
   ReactNode,
+  useEffect,
 } from "react";
+import { useAuth } from "./AuthContext";
 
 // バックエンドサーバーのベースURL
 const BACKEND_BASE =
@@ -137,6 +139,8 @@ interface AdkTestProviderProps {
 export const AdkTestProvider: React.FC<AdkTestProviderProps> = ({
   children,
 }) => {
+  const { user } = useAuth();
+
   // 基本設定
   const [agent, setAgent] = useState("analyze");
   const [userId, setUserId] = useState("");
@@ -172,6 +176,26 @@ export const AdkTestProvider: React.FC<AdkTestProviderProps> = ({
   const [text, setText] = useState("こんにちは");
   const [mode, setMode] = useState("beginner");
   const [busy, setBusy] = useState(false);
+
+  // オンボーディングの経験レベルをデフォルトモードとして設定
+  useEffect(() => {
+    if (user?.uid) {
+      // 現在のユーザーのオンボーディング設定を読み込み
+      const savedOnboardingData = localStorage.getItem(
+        `onboarding_${user.uid}`
+      );
+      if (savedOnboardingData) {
+        try {
+          const onboardingData = JSON.parse(savedOnboardingData);
+          if (onboardingData.experienceLevel && onboardingData.completed) {
+            setMode(onboardingData.experienceLevel);
+          }
+        } catch (error) {
+          console.error("Failed to parse onboarding data for mode:", error);
+        }
+      }
+    }
+  }, [user?.uid]);
 
   // カメラ関連
   const videoRef = useRef<HTMLVideoElement | null>(null);

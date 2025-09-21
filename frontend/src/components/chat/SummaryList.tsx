@@ -16,8 +16,8 @@ import {
 } from "@/types/summary";
 import {
   getUserSummaries,
-  getSummaryById,
-  deleteSummary,
+  getSummaryDetail,
+  deleteChatSummary,
 } from "@/services/summaryService";
 import { useLanguage } from "@/contexts/LanguageContext";
 

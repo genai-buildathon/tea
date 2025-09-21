@@ -43,8 +43,8 @@ export const HistorySection = () => {
   }
 
   return (
-    <div className="flex-1 w-full h-full overflow-hidden">
-      <div className="h-full px-4 py-6">
+    <div className="flex-1 w-full h-full overflow-hidden flex flex-col">
+      <div className="flex-1 px-4 pb-6">
         <SummaryList userId={user.uid} className="h-full" />
       </div>
     </div>

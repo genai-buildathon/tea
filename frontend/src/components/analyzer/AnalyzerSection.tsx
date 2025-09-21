@@ -9,7 +9,7 @@ export const AnalyzerSection = () => {
 
   return (
     <div className="flex-1 w-full h-full flex flex-col">
-      <div className="text-gray-600 mb-6 px-8 text-sm font-bold">
+      <div className="text-gray-600 mb-4 px-8 text-sm font-bold">
         {t("analyzerDescription")}
       </div>
       <TearoomBackground className="flex-1 flex flex-col items-center justify-center">

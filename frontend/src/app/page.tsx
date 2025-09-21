@@ -1,14 +1,60 @@
 "use client";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  OnboardingProvider,
+  useOnboarding,
+} from "@/contexts/OnboardingContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { NavProvider } from "@/contexts/NavContext";
 import { AdkTestProvider } from "@/contexts/AdkContext";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { Header } from "../components/main/Header";
 import { Main } from "../components/main/Main";
 import { NavBar } from "../components/main/NavBar";
 import { Sidebar } from "@/components/ui/Sidebar";
+
+// メインアプリコンポーネント（ログイン後）
+const AuthenticatedApp: React.FC = () => {
+  const { isOnboardingCompleted, isOnboardingLoading } = useOnboarding();
+
+  console.log(
+    "AuthenticatedApp render - isOnboardingCompleted:",
+    isOnboardingCompleted,
+    "isOnboardingLoading:",
+    isOnboardingLoading
+  );
+
+  // オンボーディング状態の読み込み中
+  if (isOnboardingLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-2 border-gray-300 border-t-green-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // オンボーディング未完了の場合
+  if (!isOnboardingCompleted) {
+    return <OnboardingFlow />;
+  }
+
+  return (
+    <AdkTestProvider>
+      <SidebarProvider>
+        <NavProvider>
+          <div className="flex flex-col min-h-screen w-full max-w-md mx-auto relative">
+            <Header />
+            <Main />
+            <NavBar />
+            <Sidebar />
+          </div>
+        </NavProvider>
+      </SidebarProvider>
+    </AdkTestProvider>
+  );
+};
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -24,18 +70,9 @@ export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       {user ? (
-        <AdkTestProvider>
-          <SidebarProvider>
-            <NavProvider>
-              <div className="flex flex-col min-h-screen w-full max-w-md mx-auto relative">
-                <Header />
-                <Main />
-                <NavBar />
-                <Sidebar />
-              </div>
-            </NavProvider>
-          </SidebarProvider>
-        </AdkTestProvider>
+        <OnboardingProvider>
+          <AuthenticatedApp />
+        </OnboardingProvider>
       ) : (
         <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-50">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">ようこそ</h2>

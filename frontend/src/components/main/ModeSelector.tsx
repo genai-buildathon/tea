@@ -27,7 +27,10 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
       icon: GraduationCap,
       description: t("beginnerDesc"),
       color: "bg-green-500 hover:bg-green-600 border-green-500",
-      activeColor: "bg-green-600 border-green-600",
+      activeColor:
+        "bg-green-600 border-green-600 ring-2 ring-green-300 ring-offset-2",
+      inactiveColor:
+        "bg-gray-100 border-gray-300 text-gray-600 hover:bg-green-50 hover:border-green-200 hover:text-green-700",
     },
     {
       id: "intermediate",
@@ -35,15 +38,21 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
       icon: User,
       description: t("intermediateDesc"),
       color: "bg-blue-500 hover:bg-blue-600 border-blue-500",
-      activeColor: "bg-blue-600 border-blue-600",
+      activeColor:
+        "bg-blue-600 border-blue-600 ring-2 ring-blue-300 ring-offset-2",
+      inactiveColor:
+        "bg-gray-100 border-gray-300 text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700",
     },
     {
       id: "advanced",
       label: t("advanced"),
       icon: Crown,
       description: t("advancedDesc"),
-      color: "bg-green-500 hover:bg-green-600 border-green-500",
-      activeColor: "bg-green-600 border-green-600",
+      color: "bg-purple-500 hover:bg-purple-600 border-purple-500",
+      activeColor:
+        "bg-purple-600 border-purple-600 ring-2 ring-purple-300 ring-offset-2",
+      inactiveColor:
+        "bg-gray-100 border-gray-300 text-gray-600 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700",
     },
   ];
 
@@ -65,11 +74,11 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
               onClick={() => onModeChange(mode.id)}
               disabled={isLoading}
               className={`
-                flex-1 flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200
+                flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all duration-200 transform
                 ${
                   isActive
-                    ? `${mode.activeColor} text-white shadow-md`
-                    : `${mode.color} text-white opacity-70 hover:opacity-100`
+                    ? `${mode.activeColor} text-white shadow-lg scale-105`
+                    : `${mode.inactiveColor} shadow-sm hover:shadow-md hover:scale-102`
                 }
                 ${
                   isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
@@ -85,11 +94,17 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
       </div>
 
       {/* 現在のモードの説明 */}
-      <div className="mt-2 text-center">
-        <span className="text-xs text-gray-500">
-          {modes.find((m) => m.id === currentMode)?.description ||
-            t("selectMode")}
-        </span>
+      <div className="mt-3 text-center">
+        <div className="bg-white rounded-md px-3 py-2 border border-gray-200 shadow-sm">
+          <div className="text-xs font-medium text-gray-700 mb-1">
+            {t("analysisLevel")}:{" "}
+            {modes.find((m) => m.id === currentMode)?.label}
+          </div>
+          <div className="text-xs text-gray-500">
+            {modes.find((m) => m.id === currentMode)?.description ||
+              t("selectMode")}
+          </div>
+        </div>
       </div>
     </div>
   );
