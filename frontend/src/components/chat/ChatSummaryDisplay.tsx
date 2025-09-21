@@ -79,7 +79,7 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
     <div
       className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 ${className}`}
     >
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
         {/* ヘッダー */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-green-50">
           <div className="flex items-center space-x-2">
@@ -107,36 +107,6 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
                 <ChevronDown className="w-4 h-4" />
               )}
             </button>
-
-            {/* 保存ボタン */}
-            {userId && sessionId && (
-              <button
-                onClick={handleSave}
-                disabled={isSaving || isSaved}
-                className={`p-1 rounded-md transition-colors ${
-                  isSaved
-                    ? "text-green-600 hover:bg-green-100"
-                    : isSaving
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-green-600 hover:bg-green-100"
-                }`}
-                title={
-                  isSaved
-                    ? t("saved")
-                    : isSaving
-                    ? t("saving")
-                    : t("saveToFirebase")
-                }
-              >
-                {isSaving ? (
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-green-600 rounded-full animate-spin" />
-                ) : isSaved ? (
-                  <CheckCircle className="w-4 h-4" />
-                ) : (
-                  <Database className="w-4 h-4" />
-                )}
-              </button>
-            )}
 
             {/* 閉じるボタン */}
             <button
@@ -176,23 +146,59 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
         )}
 
         {/* コンテンツ */}
-        <div
-          className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="p-4 overflow-y-auto max-h-96 space-y-4">
-            {/* フレーム画像表示 */}
-            <FrameImageDisplay frameImage={frameImage || null} />
+        <div className="flex-1 overflow-hidden">
+          <div
+            className={`transition-all duration-300 ease-in-out overflow-hidden ${
+              isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="p-4 overflow-y-auto max-h-96 space-y-4">
+              {/* フレーム画像表示 */}
+              <FrameImageDisplay frameImage={frameImage || null} />
 
-            {/* 要約テキスト */}
-            <div className="prose prose-sm max-w-none">
-              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                {summary}
+              {/* 要約テキスト */}
+              <div className="prose prose-sm max-w-none">
+                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                  {summary}
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* フッター - メイン保存ボタン */}
+        {userId && sessionId && (
+          <div className="p-4 border-t border-gray-200 bg-gray-50">
+            <button
+              onClick={handleSave}
+              disabled={isSaving || isSaved}
+              className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center space-x-2 ${
+                isSaved
+                  ? "bg-green-600 hover:bg-green-700"
+                  : isSaving
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700 hover:shadow-lg"
+              }`}
+            >
+              {isSaving ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>{t("saving")}</span>
+                </>
+              ) : isSaved ? (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  <span>{t("saved")}</span>
+                </>
+              ) : (
+                <>
+                  <Database className="w-5 h-5" />
+                  <span>{t("saveLearning")}</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

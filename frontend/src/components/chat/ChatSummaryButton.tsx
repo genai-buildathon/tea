@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { FileText, Loader2, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChatSummaryButtonProps {
   onSummarize: () => Promise<void>;
@@ -8,6 +9,7 @@ interface ChatSummaryButtonProps {
   isLoading?: boolean;
   messageCount: number;
   className?: string;
+  language?: string;
 }
 
 /**
@@ -19,17 +21,16 @@ export const ChatSummaryButton: React.FC<ChatSummaryButtonProps> = ({
   disabled = false,
   isLoading = false,
   messageCount,
+  language,
   className = "",
 }) => {
-  const [lastSummaryTime, setLastSummaryTime] = useState<Date | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
-
+  const { t } = useLanguage();
   const handleClick = async () => {
     if (disabled || isLoading || messageCount === 0) return;
 
     try {
       await onSummarize();
-      setLastSummaryTime(new Date());
       setIsSuccess(true);
 
       // 成功表示を2秒後にリセット
@@ -45,10 +46,10 @@ export const ChatSummaryButton: React.FC<ChatSummaryButtonProps> = ({
   const buttonDisabled = disabled || isLoading || messageCount === 0;
 
   const getButtonText = () => {
-    if (messageCount === 0) return "要約対象なし";
-    if (isLoading) return "要約中...";
-    if (isSuccess) return "要約完了";
-    return `学んだことを保存する (${messageCount}件)`;
+    if (messageCount === 0) return t("noSummaryTarget");
+    if (isLoading) return t("summarizing");
+    if (isSuccess) return t("summaryCompleted");
+    return t("saveSummary") + `（${messageCount}）`;
   };
 
   const getButtonIcon = () => {

@@ -44,7 +44,7 @@ export const CameraDisplay: React.FC = () => {
     connected,
   } = useAdkTest();
   const { startCamera, stopCamera, sendCurrentFrame } = useCamera();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const {
     createConnection,
     createNewSession,
@@ -188,11 +188,14 @@ export const CameraDisplay: React.FC = () => {
     setChatLoading(true);
 
     try {
-      // テキストメッセージをSSE経由で送信
+      // テキストメッセージをSSE経由で送信（言語設定を含む）
       await fetch(`/api/sse/${agent}/${connection.connection_id}/text`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: message }),
+        body: JSON.stringify({
+          data: message,
+          language: language,
+        }),
       });
       appendLog(t("chatMessageSent"));
     } catch (e: any) {

@@ -1,6 +1,7 @@
 "use client";
 import { useCallback } from "react";
 import { useAdkTest, ChatMessage } from "@/contexts/AdkContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const useMetadata = () => {
   const {
@@ -12,6 +13,7 @@ export const useMetadata = () => {
     setMetadataLoading,
     appendLog,
   } = useAdkTest();
+  const { t } = useLanguage();
 
   // セッションメタデータを生成
   const generateMetadata = useCallback(async () => {
@@ -43,7 +45,7 @@ export const useMetadata = () => {
   const summarizeChat = useCallback(
     async (chatHistory: ChatMessage[]) => {
       if (!connection || chatHistory.length === 0) {
-        appendLog("要約対象のチャット履歴がありません");
+        appendLog(t("noSummaryHistory"));
         return;
       }
 
@@ -55,19 +57,21 @@ export const useMetadata = () => {
             const timestamp = message.timestamp.toLocaleString("ja-JP");
             const speaker =
               message.type === "user"
-                ? "ユーザー"
+                ? t("user")
                 : message.type === "assistant"
-                ? "アシスタント"
+                ? t("assistant")
                 : "システム";
             const content = message.photoUrl
-              ? `[写真] ${message.content}`
+              ? `[${t("photo")}] ${message.content}`
               : message.content;
             return `[${timestamp}] ${speaker}: ${content}`;
           })
           .join("\n");
 
         // メタデータAPIを使用してチャット要約を生成
-        const summaryHint = `以下のチャット履歴を要約してください。主要なトピック、質問と回答、重要なポイントを含めて簡潔にまとめてください。\n\nチャット履歴:\n${chatText}`;
+        const summaryHint = `${t("summarizeChatHistory")}\n\n${t(
+          "chatHistory"
+        )}:\n${chatText}`;
 
         const res = await fetch(
           `/api/sessions/${connection.session_id}/metadata`,
@@ -84,12 +88,12 @@ export const useMetadata = () => {
 
         setMetadataResult(summary);
         appendLog(
-          `チャット要約を生成しました (${chatHistory.length}件のメッセージ)`
+          t("chatSummaryGenerated") + ` (${chatHistory.length}件のメッセージ)`
         );
 
         return summary;
       } catch (e: any) {
-        const errorMessage = "チャット要約エラー: " + e.message;
+        const errorMessage = t("chatSummaryError") + ": " + e.message;
         setMetadataResult(errorMessage);
         appendLog(errorMessage);
         throw e;
@@ -97,7 +101,7 @@ export const useMetadata = () => {
         setMetadataLoading(false);
       }
     },
-    [connection, appendLog, setMetadataResult, setMetadataLoading]
+    [connection, appendLog, setMetadataResult, setMetadataLoading, t]
   );
 
   return {

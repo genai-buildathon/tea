@@ -56,6 +56,12 @@ const translations = {
     noLearningHistory: "学習履歴がありません",
     saveChatLearning: "チャットで学んだことを保存すると、ここに表示されます",
     items: "件",
+    // 保存関連
+    saveLearning: "学んだことを保存する",
+    saving: "保存中...",
+    saved: "保存済み",
+    saveError: "保存エラー",
+    summarySavedToFirebase: "学んだことが保存されました",
     // アナライザーセクション
     analyzerDescription:
       "お道具にカメラをかざすだけで、AIが瞬時に名称・由来・季節の取り合わせを解説します。",
@@ -102,6 +108,8 @@ const translations = {
     loggingOut: "ログアウト中...",
     logoutError: "ログアウトに失敗しました",
     sentFrame: "送信されたフレーム",
+    languageSettingSent: "言語設定を送信しました",
+    languageSettingError: "言語設定の送信に失敗しました",
     // オンボーディング
     welcomeToAnalyzer: "Tea Ceremony Analyzerへようこそ",
     selectLanguage: "使用する言語を選択してください",
@@ -116,6 +124,14 @@ const translations = {
     continue: "続ける",
     complete: "完了",
     back: "戻る",
+    user: "ユーザー",
+    assistant: "アシスタント",
+    photo: "写真",
+    summarizeChatHistory:
+      "以下のチャット履歴を要約してください。主要なトピック、質問と回答、重要なポイントを含めて簡潔にまとめてください。",
+    chatHistory: "チャット履歴",
+    chatSummaryGenerated: "チャット要約を生成しました",
+    chatSummaryError: "チャット要約エラー",
   },
   en: {
     // サイドバー
@@ -159,6 +175,12 @@ const translations = {
     saveChatLearning: "Save chat learning and it will be displayed here",
     items: "items",
     close: "Close",
+    // 保存関連
+    saveLearning: "Save What You Learned",
+    saving: "Saving...",
+    saved: "Saved",
+    saveError: "Save Error",
+    summarySavedToFirebase: "Your learning has been saved",
     // アナライザーセクション
     analyzerDescription:
       "Simply point your camera at tea ceremony tools, and AI will instantly explain their names, origins, and seasonal combinations.",
@@ -204,6 +226,8 @@ const translations = {
     loggingOut: "Logging out...",
     logoutError: "Logout failed",
     sentFrame: "Sent Frame",
+    languageSettingSent: "Language setting sent",
+    languageSettingError: "Language setting error",
     // オンボーディング
     welcomeToAnalyzer: "Welcome to Tea Ceremony Analyzer",
     selectLanguage: "Please select your preferred language",
@@ -219,6 +243,14 @@ const translations = {
     continue: "Continue",
     complete: "Complete",
     back: "Back",
+    user: "User",
+    assistant: "Assistant",
+    photo: "Photo",
+    summarizeChatHistory:
+      "Please summarize the following chat history. Include main topics, questions and answers, and important points in a concise manner.",
+    chatHistory: "Chat History",
+    chatSummaryGenerated: "Chat summary generated",
+    chatSummaryError: "Chat summary error",
   },
   es: {
     // サイドバー
@@ -263,6 +295,12 @@ const translations = {
     saveChatLearning: "Guarda el aprendizaje en el chat y se mostrará aquí",
     items: "items",
     close: "Cerrar",
+    // 保存関連
+    saveLearning: "Guardar lo que Aprendiste",
+    saving: "Guardando...",
+    saved: "Guardado",
+    saveError: "Error al Guardar",
+    summarySavedToFirebase: "Tu aprendizaje ha sido guardado",
     // アナライザーセクション
     analyzerDescription:
       "Simplemente apunta tu cámara a las herramientas de la ceremonia del té, y la IA explicará instantáneamente sus nombres, orígenes y combinaciones estacionales.",
@@ -308,6 +346,8 @@ const translations = {
     loggingOut: "Cerrando sesión...",
     logoutError: "Error al cerrar sesión",
     sentFrame: "Marco Enviado",
+    languageSettingSent: "Configuración de idioma enviada",
+    languageSettingError: "Error de configuración de idioma",
     // オンボーディング
     welcomeToAnalyzer: "Bienvenido al Analizador de Ceremonia del Té",
     selectLanguage: "Por favor selecciona tu idioma preferido",
@@ -324,6 +364,14 @@ const translations = {
     continue: "Continuar",
     complete: "Completar",
     back: "Atrás",
+    user: "Usuario",
+    assistant: "Asistente",
+    photo: "Foto",
+    summarizeChatHistory:
+      "Por favor resume el siguiente historial de chat. Incluye temas principales, preguntas y respuestas, y puntos importantes en una forma concisa.",
+    chatHistory: "Historial de chat",
+    chatSummaryGenerated: "Resumen de chat generado",
+    chatSummaryError: "Error de resumen de chat",
   },
 };
 

@@ -12,6 +12,11 @@ export async function POST(
     const body = await request.json();
     const { agent, connectionId } = await params;
 
+    // 言語設定をログ出力（デバッグ用）
+    if (body.language) {
+      console.log(`SSE mode request with language: ${body.language}`);
+    }
+
     const response = await fetch(
       `${BACKEND_BASE}/sse/${agent}/${connectionId}/mode`,
       {

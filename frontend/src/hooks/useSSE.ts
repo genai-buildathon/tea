@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useMemo, useEffect } from "react";
 import { useAdkTest } from "@/contexts/AdkContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const useSSE = () => {
   const {
@@ -15,12 +16,27 @@ export const useSSE = () => {
     setBusy,
     appendLog,
   } = useAdkTest();
+  const { language, t } = useLanguage();
 
   // SSE接続パスを生成
   const ssePath = useMemo(() => {
     if (!connection) return "";
     return `/api/sse/${agent}/${connection.connection_id}`;
   }, [connection, agent]);
+
+  // 言語設定に応じた初期メッセージを生成
+  const getLanguageInitMessage = useCallback((lang: string) => {
+    switch (lang) {
+      case "ja":
+        return "日本語で答えてください";
+      case "en":
+        return "Please answer in English";
+      case "es":
+        return "Por favor responde en español";
+      default:
+        return "日本語で答えてください";
+    }
+  }, []);
 
   // SSE接続を開始
   const openSse = useCallback(() => {
@@ -38,7 +54,23 @@ export const useSSE = () => {
     es.onmessage = (ev) => {
       appendLog(`📨 SSE <- ${ev.data}`);
     };
-    es.addEventListener("ready", () => appendLog("🟢 SSE ready"));
+    es.addEventListener("ready", async () => {
+      appendLog("🟢 SSE ready");
+
+      // SSE接続が確立されたら、言語設定に応じた初期メッセージを送信
+      if (connection) {
+        try {
+          const languageMessage = getLanguageInitMessage(language);
+          await postJson(`/api/sse/${agent}/${connection.connection_id}/text`, {
+            data: languageMessage,
+            language: language,
+          });
+          appendLog(`🌐 ${t("languageSettingSent")}: ${languageMessage}`);
+        } catch (e: any) {
+          appendLog(`❌ ${t("languageSettingError")}: ${e.message}`);
+        }
+      }
+    });
     es.addEventListener("ping", () => appendLog("🏓 SSE ping"));
     es.onerror = (error) => {
       console.error("SSE error:", error);
@@ -62,7 +94,17 @@ export const useSSE = () => {
         setSseConnected(false);
       }
     });
-  }, [ssePath, appendLog, esRef, setSseConnected]);
+  }, [
+    ssePath,
+    appendLog,
+    esRef,
+    setSseConnected,
+    connection,
+    agent,
+    language,
+    getLanguageInitMessage,
+    t,
+  ]);
 
   // SSE接続を閉じる
   const closeSse = useCallback(() => {
@@ -91,12 +133,13 @@ export const useSSE = () => {
     try {
       await postJson(`/api/sse/${agent}/${connection.connection_id}/text`, {
         data: text,
+        language: language,
       });
       appendLog(`SSE -> text: ${text}`);
     } catch (e: any) {
       appendLog(`SSE text error: ${e.message}`);
     }
-  }, [agent, connection, text, postJson, appendLog]);
+  }, [agent, connection, text, language, postJson, appendLog]);
 
   // モード設定を送信
   const setModeReq = useCallback(async () => {
@@ -104,12 +147,13 @@ export const useSSE = () => {
     try {
       await postJson(`/api/sse/${agent}/${connection.connection_id}/mode`, {
         data: mode,
+        language: language,
       });
       appendLog(`SSE -> mode: ${mode}`);
     } catch (e: any) {
       appendLog(`SSE mode error: ${e.message}`);
     }
-  }, [agent, connection, mode, postJson, appendLog]);
+  }, [agent, connection, mode, language, postJson, appendLog]);
 
   // 画像ファイルを送信
   const sendImage = useCallback(
@@ -121,6 +165,7 @@ export const useSSE = () => {
         const base64data = b64.replace(/^data:.*;base64,/, "");
         await postJson(`/api/sse/${agent}/${connection.connection_id}/video`, {
           data: base64data,
+          language: language,
         });
         appendLog(
           `SSE -> video frame (${file.name}, ${Math.round(
@@ -133,7 +178,7 @@ export const useSSE = () => {
         setBusy(false);
       }
     },
-    [agent, connection, postJson, appendLog, setBusy]
+    [agent, connection, language, postJson, appendLog, setBusy]
   );
 
   // クリーンアップ

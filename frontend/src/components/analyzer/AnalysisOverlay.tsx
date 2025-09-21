@@ -11,6 +11,7 @@ import { ChatInterface } from "../main/ChatInterface";
 import Image from "next/image";
 
 import { ChatMessage } from "@/contexts/AdkContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AnalysisOverlayProps {
   isVisible: boolean;
@@ -51,7 +52,8 @@ export const AnalysisOverlay: React.FC<AnalysisOverlayProps> = ({
   sessionId,
   onSummarySaved,
 }) => {
-  const [isChatExpanded, setIsChatExpanded] = useState(false);
+  const { t } = useLanguage();
+  const [isChatExpanded, setIsChatExpanded] = useState(true);
 
   if (!isVisible || !text) return null;
 
@@ -78,9 +80,8 @@ export const AnalysisOverlay: React.FC<AnalysisOverlayProps> = ({
           {/* ヘッダー */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-amber-50 rounded-full animate-pulse"></div>
               <h3 className="text-lg font-semibold text-green-900">
-                設え・茶道具解説
+                {t("designExplanation")}
               </h3>
             </div>
             <div className="flex items-center space-x-2">
