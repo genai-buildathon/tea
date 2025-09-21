@@ -132,6 +132,12 @@ const translations = {
     chatHistory: "チャット履歴",
     chatSummaryGenerated: "チャット要約を生成しました",
     chatSummaryError: "チャット要約エラー",
+    saveSummary: "学んだことを保存する",
+    noSummaryTarget: "要約対象なし",
+    summarizing: "要約中...",
+    summaryCompleted: "要約完了",
+    summarizeChatMessages: "チャット履歴を要約します",
+    chatSummary: "チャット要約",
   },
   en: {
     // サイドバー
@@ -251,6 +257,12 @@ const translations = {
     chatHistory: "Chat History",
     chatSummaryGenerated: "Chat summary generated",
     chatSummaryError: "Chat summary error",
+    saveSummary: "Save summary",
+    noSummaryTarget: "No summary target",
+    summarizing: "Summarizing...",
+    summaryCompleted: "Summary completed",
+    summarizeChatMessages: "Summarize chat messages",
+    chatSummary: "Chat summary",
   },
   es: {
     // サイドバー
@@ -372,6 +384,12 @@ const translations = {
     chatHistory: "Historial de chat",
     chatSummaryGenerated: "Resumen de chat generado",
     chatSummaryError: "Error de resumen de chat",
+    saveSummary: "Guardar resumen",
+    noSummaryTarget: "No hay objetivo de resumen",
+    summarizing: "Resumiendo...",
+    summaryCompleted: "Resumen completado",
+    summarizeChatMessages: "Resumir mensajes de chat",
+    chatSummary: "Resumen de chat",
   },
 };
 

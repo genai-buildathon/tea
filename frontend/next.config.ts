@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
+  // Docker用のstandalone出力設定
+  output: "standalone",
+
   // ハイドレーションエラーを抑制（開発環境のみ）
   experimental: {
     suppressHydrationWarning: true,

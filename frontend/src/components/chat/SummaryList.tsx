@@ -1,10 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Database,
   RefreshCw,
   Search,
-  Filter,
   AlertCircle,
   Loader2,
 } from "lucide-react";
@@ -16,8 +15,8 @@ import {
 } from "@/types/summary";
 import {
   getUserSummaries,
-  getSummaryDetail,
-  deleteChatSummary,
+  getSummaryById,
+  deleteSummary,
 } from "@/services/summaryService";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -44,7 +43,7 @@ export const SummaryList: React.FC<SummaryListProps> = ({
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   // 要約一覧を取得
-  const fetchSummaries = async () => {
+  const fetchSummaries = useCallback(async () => {
     if (!userId) return;
 
     setLoading(true);
@@ -57,12 +56,12 @@ export const SummaryList: React.FC<SummaryListProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, t]);
 
   // 初回読み込み
   useEffect(() => {
     fetchSummaries();
-  }, [userId]);
+  }, [fetchSummaries]);
 
   // 要約詳細を表示
   const handleViewSummary = async (summaryId: string) => {
