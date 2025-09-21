@@ -19,6 +19,7 @@ interface ChatInterfaceProps {
   userId?: string;
   sessionId?: string;
   onSummarySaved?: (summaryId: string) => void;
+  frameImage?: string | null;
 }
 
 /**
@@ -37,6 +38,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   userId,
   sessionId,
   onSummarySaved,
+  frameImage,
 }) => {
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -94,6 +96,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         userId={userId}
         sessionId={sessionId}
         onSave={onSummarySaved}
+        frameImage={frameImage}
       />
 
       {/* チャット履歴 */}

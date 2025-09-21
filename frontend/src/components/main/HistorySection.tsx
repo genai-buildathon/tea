@@ -18,7 +18,7 @@ export const HistorySection = () => {
     return (
       <div className="flex-1 w-full h-full flex flex-col items-center justify-center px-8">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">{t("loading")}</p>
         </div>
       </div>

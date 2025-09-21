@@ -2,13 +2,14 @@
 import React, { useState } from "react";
 import {
   X,
-  Download,
   FileText,
   ChevronDown,
   ChevronUp,
   CheckCircle,
   Database,
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { FrameImageDisplay } from "./FrameImageDisplay";
 
 interface ChatSummaryDisplayProps {
   isVisible: boolean;
@@ -19,6 +20,7 @@ interface ChatSummaryDisplayProps {
   sessionId?: string;
   userId?: string;
   onSave?: (summaryId: string) => void;
+  frameImage?: string | null;
 }
 
 /**
@@ -34,34 +36,14 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
   sessionId,
   userId,
   onSave,
+  frameImage,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-
+  const { t } = useLanguage();
   if (!isVisible || !summary) return null;
-
-  const handleDownload = () => {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const filename = `chat-summary-${timestamp}.txt`;
-
-    const content = `チャット要約 (${messageCount}件のメッセージ)\n生成日時: ${new Date().toLocaleString(
-      "ja-JP"
-    )}\n\n${summary}`;
-
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-  };
 
   const handleSave = async () => {
     if (!userId || !sessionId || isSaving || isSaved) return;
@@ -75,6 +57,7 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
         sessionId,
         messageCount,
         rawSummary: summary,
+        frameImageBase64: frameImage || undefined,
       });
 
       setIsSaved(true);
@@ -85,8 +68,8 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
         setIsSaved(false);
       }, 3000);
     } catch (error: any) {
-      setSaveError(error.message || "保存に失敗しました");
-      console.error("要約保存エラー:", error);
+      setSaveError(error.message || t("saveError"));
+      console.error(t("saveError"), error);
     } finally {
       setIsSaving(false);
     }
@@ -98,15 +81,15 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
     >
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-purple-50">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-green-50">
           <div className="flex items-center space-x-2">
-            <FileText className="w-5 h-5 text-purple-600" />
-            <h3 className="text-lg font-semibold text-purple-800">
-              チャット要約
+            <FileText className="w-5 h-5 text-green-600" />
+            <h3 className="text-lg font-semibold text-green-800">
+              {t("chatSummary")}
             </h3>
             {messageCount > 0 && (
-              <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
-                {messageCount}件
+              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                {messageCount} {t("items")}
               </span>
             )}
           </div>
@@ -115,8 +98,8 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
             {/* 展開/折りたたみボタン */}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 text-purple-600 hover:bg-purple-100 rounded-md transition-colors"
-              title={isExpanded ? "折りたたむ" : "展開する"}
+              className="p-1 text-green-600 hover:bg-green-100 rounded-md transition-colors"
+              title={isExpanded ? t("collapse") : t("expand")}
             >
               {isExpanded ? (
                 <ChevronUp className="w-4 h-4" />
@@ -135,18 +118,18 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
                     ? "text-green-600 hover:bg-green-100"
                     : isSaving
                     ? "text-gray-400 cursor-not-allowed"
-                    : "text-purple-600 hover:bg-purple-100"
+                    : "text-green-600 hover:bg-green-100"
                 }`}
                 title={
                   isSaved
-                    ? "保存済み"
+                    ? t("saved")
                     : isSaving
-                    ? "保存中..."
-                    : "Firebaseに保存"
+                    ? t("saving")
+                    : t("saveToFirebase")
                 }
               >
                 {isSaving ? (
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-green-600 rounded-full animate-spin" />
                 ) : isSaved ? (
                   <CheckCircle className="w-4 h-4" />
                 ) : (
@@ -155,20 +138,11 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
               </button>
             )}
 
-            {/* ダウンロードボタン */}
-            <button
-              onClick={handleDownload}
-              className="p-1 text-purple-600 hover:bg-purple-100 rounded-md transition-colors"
-              title="要約をダウンロード"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-
             {/* 閉じるボタン */}
             <button
               onClick={onClose}
               className="p-1 text-gray-400 hover:bg-gray-100 rounded-md transition-colors"
-              title="閉じる"
+              title={t("close")}
             >
               <X className="w-4 h-4" />
             </button>
@@ -196,7 +170,7 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
           <div className="px-4 py-2 bg-green-50 border-b border-green-200">
             <div className="flex items-center space-x-2 text-green-700 text-sm">
               <CheckCircle className="w-4 h-4" />
-              <span>要約をFirebaseに保存しました</span>
+              <span>{t("summarySavedToFirebase")}</span>
             </div>
           </div>
         )}
@@ -207,7 +181,11 @@ export const ChatSummaryDisplay: React.FC<ChatSummaryDisplayProps> = ({
             isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
-          <div className="p-4 overflow-y-auto max-h-96">
+          <div className="p-4 overflow-y-auto max-h-96 space-y-4">
+            {/* フレーム画像表示 */}
+            <FrameImageDisplay frameImage={frameImage || null} />
+
+            {/* 要約テキスト */}
             <div className="prose prose-sm max-w-none">
               <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
                 {summary}

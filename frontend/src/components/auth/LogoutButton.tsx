@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOutIcon } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface LogoutButtonProps {
   className?: string;
@@ -15,13 +16,13 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
 }) => {
   const { logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-
+  const { t } = useLanguage();
   const handleLogout = async () => {
     setIsLoading(true);
     try {
       await logout();
     } catch (error) {
-      console.error("ログアウトエラー:", error);
+      console.error(t("logoutError"), error);
       // エラーハンドリングをここに追加できます
     } finally {
       setIsLoading(false);
@@ -63,7 +64,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       ) : (
         <LogOutIcon className="w-4 h-4" />
       )}
-      <span>{isLoading ? "ログアウト中..." : "ログアウト"}</span>
+      <span>{isLoading ? t("loggingOut") : t("logout")}</span>
     </button>
   );
 };

@@ -70,7 +70,7 @@ export const ChatSummaryButton: React.FC<ChatSummaryButtonProps> = ({
               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
               : isSuccess
               ? "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 focus:ring-green-500"
-              : "bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 focus:ring-purple-500"
+              : "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 focus:ring-green-500"
           }
         `}
         title={

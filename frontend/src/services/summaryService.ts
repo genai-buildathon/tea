@@ -12,7 +12,13 @@ import {
   limit,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
 import {
   ChatSummaryData,
   CreateSummaryRequest,
@@ -21,6 +27,56 @@ import {
 } from "@/types/summary";
 
 const COLLECTION_NAME = "chatSummaries";
+const STORAGE_PATH = "summary-frame-images";
+
+/**
+ * Base64画像データをFirebase Storageにアップロードする関数
+ */
+const uploadFrameImage = async (
+  userId: string,
+  sessionId: string,
+  base64Data: string
+): Promise<string> => {
+  try {
+    // Base64データをBlobに変換
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: "image/jpeg" });
+
+    // ファイル名を生成（ユーザーID_セッションID_タイムスタンプ.jpg）
+    const timestamp = Date.now();
+    const fileName = `${userId}_${sessionId}_${timestamp}.jpg`;
+    const storageRef = ref(storage, `${STORAGE_PATH}/${fileName}`);
+
+    // ファイルをアップロード
+    const snapshot = await uploadBytes(storageRef, blob);
+
+    // ダウンロードURLを取得
+    const downloadURL = await getDownloadURL(snapshot.ref);
+
+    return downloadURL;
+  } catch (error) {
+    console.error("画像アップロードエラー:", error);
+    throw new Error("画像のアップロードに失敗しました");
+  }
+};
+
+/**
+ * Firebase Storageから画像を削除する関数
+ */
+const deleteFrameImage = async (imageUrl: string): Promise<void> => {
+  try {
+    const imageRef = ref(storage, imageUrl);
+    await deleteObject(imageRef);
+  } catch (error) {
+    console.error("画像削除エラー:", error);
+    // 画像削除の失敗は致命的ではないため、エラーをスローしない
+  }
+};
 
 /**
  * 要約テキストを構造化データに変換する関数
@@ -121,6 +177,16 @@ export const saveChatSummary = async (
     const structuredData = parseSummaryText(request.rawSummary);
     const now = new Date();
 
+    // フレーム画像がある場合はStorageにアップロード
+    let frameImageUrl: string | undefined;
+    if (request.frameImageBase64) {
+      frameImageUrl = await uploadFrameImage(
+        userId,
+        request.sessionId,
+        request.frameImageBase64
+      );
+    }
+
     const summaryData: Omit<ChatSummaryData, "id"> = {
       userId,
       sessionId: request.sessionId,
@@ -133,6 +199,7 @@ export const saveChatSummary = async (
       keyEvents: structuredData.keyEvents,
       keywords: structuredData.keywords,
       rawSummary: request.rawSummary,
+      frameImageUrl,
       structuredData,
     };
 
@@ -213,6 +280,7 @@ export const getSummaryById = async (
       keyEvents: data.keyEvents,
       keywords: data.keywords,
       rawSummary: data.rawSummary,
+      frameImageUrl: data.frameImageUrl,
       structuredData: data.structuredData,
     };
   } catch (error) {
@@ -245,8 +313,17 @@ export const updateSummary = async (
  */
 export const deleteSummary = async (summaryId: string): Promise<void> => {
   try {
+    // 削除前に要約データを取得して画像URLを確認
+    const summaryData = await getSummaryById(summaryId);
+
+    // Firestoreから要約を削除
     const docRef = doc(db, COLLECTION_NAME, summaryId);
     await deleteDoc(docRef);
+
+    // 関連する画像がある場合は削除
+    if (summaryData?.frameImageUrl) {
+      await deleteFrameImage(summaryData.frameImageUrl);
+    }
   } catch (error) {
     console.error("要約削除エラー:", error);
     throw new Error("要約の削除に失敗しました");
@@ -286,6 +363,7 @@ export const getSummariesBySession = async (
         keyEvents: data.keyEvents,
         keywords: data.keywords,
         rawSummary: data.rawSummary,
+        frameImageUrl: data.frameImageUrl,
         structuredData: data.structuredData,
       });
     });

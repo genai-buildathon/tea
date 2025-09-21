@@ -187,6 +187,7 @@ export const AnalysisOverlay: React.FC<AnalysisOverlayProps> = ({
                     userId={userId}
                     sessionId={sessionId}
                     onSummarySaved={onSummarySaved}
+                    frameImage={sentFrameImage}
                   />
                 </div>
               </div>

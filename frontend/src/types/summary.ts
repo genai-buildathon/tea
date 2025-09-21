@@ -34,6 +34,8 @@ export interface ChatSummaryData {
   keywords?: string[];
   /** 生の要約テキスト */
   rawSummary: string;
+  /** フレーム画像のURL */
+  frameImageUrl?: string;
   /** 構造化された要約データ */
   structuredData?: {
     purpose?: string;
@@ -51,6 +53,8 @@ export interface CreateSummaryRequest {
   messageCount: number;
   /** 生の要約テキスト */
   rawSummary: string;
+  /** フレーム画像のbase64データ */
+  frameImageBase64?: string;
 }
 
 export interface SummaryListItem {

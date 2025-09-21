@@ -42,8 +42,8 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
       label: t("advanced"),
       icon: Crown,
       description: t("advancedDesc"),
-      color: "bg-purple-500 hover:bg-purple-600 border-purple-500",
-      activeColor: "bg-purple-600 border-purple-600",
+      color: "bg-green-500 hover:bg-green-600 border-green-500",
+      activeColor: "bg-green-600 border-green-600",
     },
   ];
 

@@ -21,7 +21,6 @@ export const PhotoMessage: React.FC<PhotoMessageProps> = ({
   caption,
   timestamp,
   isUser = false,
-  onDownload,
   className = "",
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -33,20 +32,6 @@ export const PhotoMessage: React.FC<PhotoMessageProps> = ({
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const handleDownload = () => {
-    if (onDownload) {
-      onDownload();
-    } else {
-      // デフォルトのダウンロード処理
-      const link = document.createElement("a");
-      link.href = photoUrl;
-      link.download = `photo_${timestamp.getTime()}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
   };
 
   const handleImageClick = () => {
@@ -119,17 +104,6 @@ export const PhotoMessage: React.FC<PhotoMessageProps> = ({
                 <Eye className="w-6 h-6 text-white" />
               </div>
             </div>
-          </div>
-
-          {/* アクションボタン */}
-          <div className="absolute top-2 right-2 flex space-x-1">
-            <button
-              onClick={handleDownload}
-              className="p-1.5 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-all duration-200"
-              title="ダウンロード"
-            >
-              <Download className="w-3 h-3" />
-            </button>
           </div>
         </div>
 

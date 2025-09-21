@@ -113,18 +113,18 @@ export const SummaryList: React.FC<SummaryListProps> = ({
       {/* ヘッダー */}
       <div className="flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-2">
-          <Database className="w-5 h-5 text-purple-600" />
+          <Database className="w-5 h-5 text-green-600" />
           <h2 className="text-lg font-semibold text-gray-900">
             {t("learningHistory")}
           </h2>
-          <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
             {summaries.length} {t("items")}
           </span>
         </div>
         <button
           onClick={fetchSummaries}
           disabled={loading}
-          className="p-2 text-purple-600 hover:bg-purple-50 rounded-md transition-colors disabled:opacity-50"
+          className="p-2 text-green-600 hover:bg-green-50 rounded-md transition-colors disabled:opacity-50"
           title={t("update")}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -139,7 +139,7 @@ export const SummaryList: React.FC<SummaryListProps> = ({
           placeholder={t("searchLearningContent")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
         />
       </div>
 
@@ -153,7 +153,7 @@ export const SummaryList: React.FC<SummaryListProps> = ({
               onClick={() => setError(null)}
               className="ml-auto text-red-500 hover:text-red-700"
             >
-              {t("close")}
+              s{t("close")}
             </button>
           </div>
         </div>
@@ -162,7 +162,7 @@ export const SummaryList: React.FC<SummaryListProps> = ({
       {/* ローディング */}
       {loading && (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+          <Loader2 className="w-6 h-6 animate-spin text-green-600" />
           <span className="ml-2 text-gray-600">{t("loading")}</span>
         </div>
       )}

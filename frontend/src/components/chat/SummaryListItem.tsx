@@ -52,7 +52,7 @@ export const SummaryListItem: React.FC<SummaryListItemProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-lg border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-200 cursor-pointer ${className}`}
+      className={`bg-white rounded-lg border border-gray-200 hover:border-green-300 hover:shadow-md transition-all duration-200 cursor-pointer ${className}`}
       onClick={handleView}
     >
       <div className="p-4">
@@ -60,7 +60,7 @@ export const SummaryListItem: React.FC<SummaryListItemProps> = ({
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <Calendar className="w-4 h-4" />
-            <span>{formatDate(summary.createdAt, t("language"))}</span>
+            <span>{formatDate(summary.createdAt, t("languageCode"))}</span>
             <MessageSquare className="w-4 h-4 ml-2" />
             <span>
               {summary.messageCount} {t("items")}
@@ -69,7 +69,7 @@ export const SummaryListItem: React.FC<SummaryListItemProps> = ({
           <div className="flex items-center space-x-1">
             <button
               onClick={handleView}
-              className="p-1 text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
+              className="p-1 text-green-600 hover:bg-green-50 rounded-md transition-colors"
               title={t("viewSummary")}
             >
               <Eye className="w-4 h-4" />
@@ -104,7 +104,7 @@ export const SummaryListItem: React.FC<SummaryListItemProps> = ({
               {summary.topKeywords.map((keyword, index) => (
                 <span
                   key={index}
-                  className="inline-block px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-full"
+                  className="inline-block px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full"
                 >
                   {keyword}
                 </span>
