@@ -1,0 +1,277 @@
+"use client";
+import React, { createContext, useContext, useState, useEffect } from "react";
+
+export type Language = "ja" | "en" | "es";
+
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (language: Language) => void;
+  t: (key: string) => string;
+}
+
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined
+);
+
+// 言語リソース
+const translations = {
+  ja: {
+    // サイドバー
+    menu: "メニュー",
+    closeSidebar: "サイドバーを閉じる",
+    language: "言語",
+    // 言語名
+    japanese: "日本語",
+    english: "English",
+    spanish: "Español",
+    // ヘッダー
+    appTitle: "WabiSabi Analyzer",
+    appSubtitle: "Tea Ceremony Tool Analyzer",
+    // ナビゲーション
+    analyzerTab: "お道具アナライザー",
+    historyTab: "保存履歴",
+    // モードセレクター
+    analysisLevel: "解析レベル",
+    beginner: "初心者",
+    intermediate: "中級者",
+    advanced: "上級者",
+    beginnerDesc: "基本的な説明",
+    intermediateDesc: "詳細な解説",
+    advancedDesc: "専門的な分析",
+    selectMode: "モードを選択",
+    // チャットインターフェース
+    askQuestion: "質問や感想をお聞かせください",
+    inputPlaceholder: "質問や感想を入力してください...",
+    // 履歴セクション
+    loading: "読み込み中...",
+    savedHistory: "保存履歴",
+    loginRequired: "保存された要約を表示するにはログインが必要です",
+    summaryError: "要約エラー:",
+    summaryListError: "要約一覧の取得に失敗しました",
+    summaryDeleteError: "要約の削除に失敗しました",
+    learningHistory: "学習履歴",
+    update: "更新",
+    searchLearningContent: "学習内容を検索...",
+    noSearchResults: "検索結果がありません",
+    noLearningHistory: "学習履歴がありません",
+    saveChatLearning: "チャットで学んだことを保存すると、ここに表示されます",
+    items: "件",
+    // アナライザーセクション
+    analyzerDescription:
+      "お道具にカメラをかざすだけで、AIが瞬時に名称・由来・季節の取り合わせを解説します。",
+    // カメラ機能
+    createNewConnection: "新規接続を作成",
+    cameraStart: "カメラ開始",
+    cameraStop: "カメラ停止",
+    sendFrame: "フレーム送信",
+    sending: "送信中...",
+    waitingSSE: "SSE接続待機中...",
+    // ログメッセージ
+    chatMessageSent: "チャットメッセージを送信しました",
+    photoConditionsNotMet: "写真キャプチャの条件が満たされていません",
+    frameCaptureError: "フレームのキャプチャに失敗しました",
+    cameraPhoto: "カメラで撮影した写真",
+    photoSent: "写真を送信しました",
+    noSummaryHistory: "要約対象のチャット履歴がありません",
+    sseNotConnected: "SSE接続が確立されていません",
+    frameSent: "フレームを送信しました",
+    startingNewConnection: "新規接続を開始します...",
+    newConnectionCreated: "新規接続を作成しました",
+    connected: "接続済み",
+    // 共通
+    close: "閉じる",
+    save: "保存",
+    delete: "削除",
+    edit: "編集",
+    settings: "設定",
+  },
+  en: {
+    // サイドバー
+    menu: "Menu",
+    closeSidebar: "Close sidebar",
+    language: "Language",
+    // 言語名
+    japanese: "日本語",
+    english: "English",
+    spanish: "Español",
+    // ヘッダー
+    appTitle: "WabiSabi Analyzer",
+    appSubtitle: "Tea Ceremony Tool Analyzer",
+    // ナビゲーション
+    analyzerTab: "Tea Tool Analyzer",
+    historyTab: "Saved History",
+    // モードセレクター
+    analysisLevel: "Analysis Level",
+    beginner: "Beginner",
+    intermediate: "Intermediate",
+    advanced: "Advanced",
+    beginnerDesc: "Basic explanation",
+    intermediateDesc: "Detailed analysis",
+    advancedDesc: "Expert analysis",
+    selectMode: "Select mode",
+    // チャットインターフェース
+    askQuestion: "Please share your questions or thoughts",
+    inputPlaceholder: "Enter your questions or thoughts...",
+    // 履歴セクション
+    loading: "Loading...",
+    savedHistory: "Saved History",
+    loginRequired: "Login required to view saved summaries",
+    summaryError: "Summary error:",
+    summaryListError: "Failed to get summary list",
+    summaryDeleteError: "Failed to delete summary",
+    learningHistory: "Learning History",
+    update: "Update",
+    searchLearningContent: "Search learning content...",
+    noSearchResults: "No search results",
+    noLearningHistory: "No learning history",
+    saveChatLearning: "Save chat learning and it will be displayed here",
+    items: "items",
+    close: "Close",
+    // アナライザーセクション
+    analyzerDescription:
+      "Simply point your camera at tea ceremony tools, and AI will instantly explain their names, origins, and seasonal combinations.",
+    // カメラ機能
+    createNewConnection: "Create New Connection",
+    cameraStart: "Start Camera",
+    cameraStop: "Stop Camera",
+    sendFrame: "Send Frame",
+    sending: "Sending...",
+    waitingSSE: "Waiting for SSE connection...",
+    // ログメッセージ
+    chatMessageSent: "Chat message sent",
+    photoConditionsNotMet: "Photo capture conditions not met",
+    frameCaptureError: "Failed to capture frame",
+    cameraPhoto: "Camera captured photo",
+    photoSent: "Photo sent",
+    noSummaryHistory: "No chat history to summarize",
+    sseNotConnected: "SSE connection not established",
+    frameSent: "Frame sent",
+    startingNewConnection: "Starting new connection...",
+    newConnectionCreated: "New connection created",
+    connected: "Connected",
+    // 共通
+    close: "Close",
+    save: "Save",
+    delete: "Delete",
+    edit: "Edit",
+    settings: "Settings",
+  },
+  es: {
+    // サイドバー
+    menu: "Menú",
+    closeSidebar: "Cerrar barra lateral",
+    language: "Idioma",
+    // 言語名
+    japanese: "日本語",
+    english: "English",
+    spanish: "Español",
+    // ヘッダー
+    appTitle: "WabiSabi Analyzer",
+    appSubtitle: "Té Ceremonia Herramientas Analizador",
+    // ナビゲーション
+    analyzerTab: "Analizador de Herramientas",
+    historyTab: "Historial Guardado",
+    // モードセレクター
+    analysisLevel: "Nivel de Análisis",
+    beginner: "Principiante",
+    intermediate: "Intermedio",
+    advanced: "Avanzado",
+    beginnerDesc: "Explicación básica",
+    intermediateDesc: "Análisis detallado",
+    advancedDesc: "Análisis experto",
+    selectMode: "Seleccionar modo",
+    // チャットインターフェース
+    askQuestion: "Por favor comparte tus preguntas o pensamientos",
+    inputPlaceholder: "Ingresa tus preguntas o pensamientos...",
+    // 履歴セクション
+    loading: "Cargando...",
+    savedHistory: "Historial Guardado",
+    loginRequired:
+      "Se requiere iniciar sesión para ver los resúmenes guardados",
+    summaryError: "Error de resumen:",
+    summaryListError: "Error al obtener el listado de resumen",
+    summaryDeleteError: "Error al eliminar el resumen",
+    learningHistory: "Historial de aprendizaje",
+    update: "Actualizar",
+    searchLearningContent: "Buscar contenido de aprendizaje...",
+    noSearchResults: "No hay resultados de búsqueda",
+    noLearningHistory: "No hay historial de aprendizaje",
+    saveChatLearning: "Guarda el aprendizaje en el chat y se mostrará aquí",
+    items: "items",
+    close: "Cerrar",
+    // アナライザーセクション
+    analyzerDescription:
+      "Simplemente apunta tu cámara a las herramientas de la ceremonia del té, y la IA explicará instantáneamente sus nombres, orígenes y combinaciones estacionales.",
+    // カメラ機能
+    createNewConnection: "Crear Nueva Conexión",
+    cameraStart: "Iniciar Cámara",
+    cameraStop: "Detener Cámara",
+    sendFrame: "Enviar Marco",
+    sending: "Enviando...",
+    waitingSSE: "Esperando conexión SSE...",
+    // ログメッセージ
+    chatMessageSent: "Mensaje de chat enviado",
+    photoConditionsNotMet: "Condiciones de captura de foto no cumplidas",
+    frameCaptureError: "Error al capturar marco",
+    cameraPhoto: "Foto capturada por cámara",
+    photoSent: "Foto enviada",
+    noSummaryHistory: "No hay historial de chat para resumir",
+    sseNotConnected: "Conexión SSE no establecida",
+    frameSent: "Marco enviado",
+    startingNewConnection: "Iniciando nueva conexión...",
+    newConnectionCreated: "Nueva conexión creada",
+    connected: "Conectado",
+    // 共通
+    save: "Guardar",
+    delete: "Eliminar",
+    edit: "Editar",
+    settings: "Configuración",
+  },
+};
+
+interface LanguageProviderProps {
+  children: React.ReactNode;
+}
+
+export const LanguageProvider: React.FC<LanguageProviderProps> = ({
+  children,
+}) => {
+  const [language, setLanguageState] = useState<Language>("ja");
+
+  // ローカルストレージから言語設定を読み込み
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem("language") as Language;
+    if (savedLanguage && ["ja", "en", "es"].includes(savedLanguage)) {
+      setLanguageState(savedLanguage);
+    }
+  }, []);
+
+  // 言語変更時にローカルストレージに保存
+  const setLanguage = (newLanguage: Language) => {
+    setLanguageState(newLanguage);
+    localStorage.setItem("language", newLanguage);
+  };
+
+  // 翻訳関数
+  const t = (key: string): string => {
+    return (
+      translations[language][
+        key as keyof (typeof translations)[typeof language]
+      ] || key
+    );
+  };
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = (): LanguageContextType => {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error("useLanguage must be used within a LanguageProvider");
+  }
+  return context;
+};
