@@ -1,4 +1,6 @@
-from google.adk.agents import LlmAgent
+from __future__ import annotations
+
+from ..services.genai import generate_text, get_text_from_response
 
 BASIC_INSTRUCTION = """
 あなたは、長年の経験を持つ茶道の師範であり、AIアシスタントです。あなたの役割は、茶道に興味を持ち始めたばかりの初心者に対して、画像や動画に写っている茶道具の名称、使い方、そしてその道具にまつわる基礎知識を、親しみやすく丁寧に解説することです。
@@ -46,11 +48,14 @@ BASIC_INSTRUCTION = """
 あなたの知識は、提供された画像・動画の情報に基づいています。断定的な表現が難しい場合は、「～だと思われます」「一般的には～と呼ばれています」といった、少し幅を持たせた表現を使用してください。
 """
 
-tools_basic_knowledge_agent = LlmAgent(
-    name="tools_basic_knowledge_agent",
-    description="Basic usage and safety of tools (small KB).",
-    instruction=BASIC_INSTRUCTION,
-    # Live API 対応モデル
-    model="gemini-2.0-flash-exp",
-    disallow_transfer_to_peers=True,
-)
+BASIC_MODEL = "gemini-2.0-flash-exp"
+
+
+def explain_tool_basics(prompt: str, *, model: str = BASIC_MODEL) -> str:
+    """Generate an accessible explanation for a tea utensil based on context."""
+    prompt_text = prompt.strip()
+    if not prompt_text:
+        return "道具の説明に必要な情報が不足しています。気になる道具の特徴をもう少し教えてください。"
+    response = generate_text(model=model, instruction=BASIC_INSTRUCTION, prompt=prompt_text)
+    text = get_text_from_response(response)
+    return text.strip() if text else ""

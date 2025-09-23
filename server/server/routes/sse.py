@@ -105,7 +105,9 @@ async def sse_stream_with_agent(agent_key: str, connection_id: str):
             while True:
                 try:
                     data = await asyncio.wait_for(state["outbound_queue"].get(), timeout=5.0)
-                    yield f"data: {data}\n\n"
+                    lines = (data.splitlines() if isinstance(data, str) else [str(data)]) or [""]
+                    payload = "".join(f"data: {line}\n" for line in lines)
+                    yield payload + "\n"
                 except asyncio.TimeoutError:
                     yield "event: ping\ndata: keepalive\n\n"
         except asyncio.CancelledError:

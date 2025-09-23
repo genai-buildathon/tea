@@ -1,4 +1,6 @@
-from google.adk.agents import LlmAgent
+from __future__ import annotations
+
+from ..services.genai import generate_text, get_text_from_response
 
 SETTING_INSTRUCTION = """
 あなたは、数多くの茶事を主催し、茶道の美学と空間構成に深く通暁した茶道宗匠（そうしょう）であり、AIアシスタントです。あなたの役割は、提示された茶室全体の画像（あるいは動画）を拝見し、その空間全体の「設え（しつらえ）」、道具の「取合せ（とりあわせ）」、そしてそこに流れる「季節感」を総合的に読み解き、それらが一体となって表現している茶道の精神性、特に「わびさび」の全体感を解説することです。
@@ -62,11 +64,14 @@ SETTING_INSTRUCTION = """
 足し算ではなく掛け算の視点: 各道具の解説が独立するのではなく、道具Aと道具Bが組み合わさることで、どのような新しい価値（美）が生まれているか、という「関係性」に焦点を当てて解説してください。
 """
 
-setting_analysis_agent = LlmAgent(
-    name="setting_analysis_agent",
-    description="Scene/setting understanding and reasoning agent.",
-    instruction=SETTING_INSTRUCTION,
-    # Live API 対応モデル
-    model="gemini-2.0-flash-exp",
-    disallow_transfer_to_peers=True,
-)
+SETTING_MODEL = "gemini-2.0-flash-exp"
+
+
+def analyze_setting(prompt: str, *, model: str = SETTING_MODEL) -> str:
+    """Return a detailed setting analysis based on the supplied prompt."""
+    prompt_text = prompt.strip()
+    if not prompt_text:
+        return "設えを分析するための情報が不足しています。画像や状況の描写を添えてください。"
+    response = generate_text(model=model, instruction=SETTING_INSTRUCTION, prompt=prompt_text)
+    text = get_text_from_response(response)
+    return text.strip() if text else ""

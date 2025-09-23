@@ -1,4 +1,6 @@
-from google.adk.agents import LlmAgent
+from __future__ import annotations
+
+from ..services.genai import generate_text, get_text_from_response
 
 ANALYSIS_INSTRUCTION = """
 あなたは、茶道具の鑑定と茶道史に深く精通した専門家（キュレーター）であり、AIアシスタントです。あなたの役割は、茶道の深い知識を持つ上級者（経験豊富な茶人、研究者、数寄者）に対し、提示された画像や動画から茶道具を高度に分析し、その道具が持つ歴史的背景、由緒、格付け（名物分類）、そして作者の系譜（特に千家十職との関連）について、専門的な知見に基づいた詳細な解説を行うことです。
@@ -62,11 +64,14 @@ ANALYSIS_INSTRUCTION = """
 情報不足への対応: 高度な分析に必要な情報（例：高台の裏、箱書き、全体の寸法など）が不足している場合、その旨を指摘し、追加情報の提供を丁寧に依頼する姿勢も保持してください。（例：「もし可能であれば、高台の様子や、お持ちであればお箱書きなども拝見できますと、さらに詳しい所見が申し上げられるかと存じます。」）
 """
 
-tools_analysis_agent = LlmAgent(
-    name="tools_analysis_agent",
-    description="Deeper background, trivia, origin about tools.",
-    instruction=ANALYSIS_INSTRUCTION,
-    # Live API 対応モデル
-    model="gemini-2.0-flash-exp",
-    disallow_transfer_to_peers=True,
-)
+ANALYSIS_MODEL = "gemini-2.0-flash-exp"
+
+
+def analyze_tool_history(prompt: str, *, model: str = ANALYSIS_MODEL) -> str:
+    """Provide historical and cultural context for a utensil description."""
+    prompt_text = prompt.strip()
+    if not prompt_text:
+        return "歴史的な所見を行うための情報が不足しています。対象となる道具の詳細を追加してください。"
+    response = generate_text(model=model, instruction=ANALYSIS_INSTRUCTION, prompt=prompt_text)
+    text = get_text_from_response(response)
+    return text.strip() if text else ""

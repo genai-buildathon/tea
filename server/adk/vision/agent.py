@@ -1,5 +1,8 @@
-from google.adk.agents import Agent
-from google.adk.tools import google_search
+from __future__ import annotations
+
+from google.genai import types
+
+from ..services.genai import generate_with_parts, get_text_from_response
 
 
 VISION_INSTRUCTION = """
@@ -17,10 +20,33 @@ VISION_INSTRUCTION = """
 # Keep the model lightweight for default; can be overridden by env/config.
 VISION_MODEL = "gemini-2.0-flash-exp"
 
-vision_agent = Agent(
-    name="vision_agent",
-    model=VISION_MODEL,
-    instruction=VISION_INSTRUCTION,
-    # Prevent peer-to-peer transfer loops; escalate back to planner instead.
-    disallow_transfer_to_peers=True,
-)
+
+def summarize_image(
+    image_bytes: bytes,
+    *,
+    mime_type: str = "image/jpeg",
+    instruction: str = VISION_INSTRUCTION,
+    model: str = VISION_MODEL,
+) -> str:
+    """Return a textual summary for the provided image bytes.
+
+    Args:
+        image_bytes: Raw image payload captured from the client.
+        mime_type: MIME type of the image. Defaults to JPEG.
+        instruction: Prompt steering the vision model.
+        model: Target Gemini model name.
+
+    Returns:
+        The model's textual summary.
+    """
+    if not image_bytes:
+        raise ValueError("image_bytes must contain data for summarization.")
+
+    parts = [
+        types.Part.from_text(text="以下の画像について、観察結果を説明してください。"),
+        types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+    ]
+
+    response = generate_with_parts(model=model, instruction=instruction, parts=parts)
+    text = get_text_from_response(response)
+    return text.strip() if text else ""
