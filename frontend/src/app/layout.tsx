@@ -24,7 +24,7 @@ const notoSerifJP = Noto_Serif_JP({
 });
 
 export const metadata: Metadata = {
-  title: "WabiSabi Lens - Tea Ceremony Tool Analyzer",
+  title: "WabiSabi Analyzer - Tea Ceremony Tool Analyzer",
   description:
     "お道具にカメラをかざすだけで、AIが瞬時に名称・由来・季節の取り合わせを解説します。",
 };
@@ -43,7 +43,6 @@ export default function RootLayout({
     <html lang="ja">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} antialiased`}
-        suppressHydrationWarning={true}
       >
         <Script
           id="hydration-fix"

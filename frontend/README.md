@@ -151,12 +151,22 @@ PostCSS の設定ファイル。Tailwind CSS の処理を設定。
 
 ## 🌐 デプロイ
 
-このプロジェクトは Vercel での簡単デプロイに対応しています。
-
 ```bash
-# ビルドテスト
-npm run build
+# 初期設定（API有効化、Artifact Registry作成）
+./scripts/cloud-run.sh init
 
-# 本番環境での動作確認
-npm run start
+# ビルド＆プッシュ
+./scripts/cloud-run.sh build
+
+# デプロイ
+./scripts/cloud-run.sh deploy
+
+# ビルド＆デプロイ（一括実行）
+./scripts/cloud-run.sh release
+
+# サービスURL取得
+./scripts/cloud-run.sh url
+
+# ログ確認
+./scripts/cloud-run.sh logs
 ```

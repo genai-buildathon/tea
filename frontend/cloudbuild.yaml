@@ -1,0 +1,29 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "--build-arg"
+      - "NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyC9rTvAZRwGGMZm7ENmCiZqVBrzMH_aE1A"
+      - "--build-arg"
+      - "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=flash-proxy-471209-q8.firebaseapp.com"
+      - "--build-arg"
+      - "NEXT_PUBLIC_FIREBASE_PROJECT_ID=flash-proxy-471209-q8"
+      - "--build-arg"
+      - "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=flash-proxy-471209-q8.firebasestorage.app"
+      - "--build-arg"
+      - "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=760751063280"
+      - "--build-arg"
+      - "NEXT_PUBLIC_FIREBASE_APP_ID=1:760751063280:web:b9fba087ae06fdee840235"
+      - "--build-arg"
+      - "NEXT_PUBLIC_BACKEND_BASE=https://tea-server-760751063280.us-central1.run.app"
+      - "-t"
+      - "$_IMAGE_NAME"
+      - "."
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "$_IMAGE_NAME"]
+
+substitutions:
+  _IMAGE_NAME: "us-central1-docker.pkg.dev/flash-proxy-471209-q8/frontend/tea-frontend:latest"
+
+options:
+  logging: CLOUD_LOGGING_ONLY

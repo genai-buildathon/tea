@@ -6,11 +6,6 @@ const nextConfig: NextConfig = {
   // Docker用のstandalone出力設定
   output: "standalone",
 
-  // ハイドレーションエラーを抑制（開発環境のみ）
-  experimental: {
-    suppressHydrationWarning: true,
-  },
-
   // ブラウザ拡張機能による属性変更を考慮
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
