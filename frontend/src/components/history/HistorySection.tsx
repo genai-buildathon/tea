@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { SummaryList } from "@/components/chat/SummaryList";
+import { SummaryList } from "@/components/history/SummaryList";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { Database } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";

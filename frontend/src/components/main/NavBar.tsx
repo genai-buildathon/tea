@@ -2,7 +2,7 @@
 import React from "react";
 import { useNav } from "@/contexts/NavContext";
 import { NavTabItem } from "@/components/ui/NavTabItem";
-import { ChasenIconGreen } from "./ChasenLogo";
+import { ChasenIconGreen } from "../ui/ChasenLogo";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // ナビゲーションバー（スマホ）

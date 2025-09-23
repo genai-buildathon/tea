@@ -25,7 +25,7 @@ const translations = {
     english: "English",
     spanish: "Español",
     // ヘッダー
-    appTitle: "侘び寂び アナライザー",
+    appTitle: "お道具アナライザー",
     appSubtitle: "Tea Ceremony Tool Analyzer",
     // ナビゲーション
     analyzerTab: "お道具アナライザー",

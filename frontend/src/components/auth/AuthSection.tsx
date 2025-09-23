@@ -3,7 +3,7 @@
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { GoogleLoginButton } from "./GoogleLoginButton";
-import { UserProfile } from "./UserProfile";
+import { UserProfile } from "../sidebar/UserProfile";
 
 interface AuthSectionProps {
   className?: string;

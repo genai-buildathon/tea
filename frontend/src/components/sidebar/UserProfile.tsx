@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogoutButton } from "./LogoutButton";
 
 interface UserProfileProps {
   className?: string;
@@ -58,12 +57,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({
           )}
         </div>
       </div>
-
-      {showLogoutButton && (
-        <div className={isVertical ? "w-full" : ""}>
-          <LogoutButton variant="text" />
-        </div>
-      )}
     </div>
   );
 };

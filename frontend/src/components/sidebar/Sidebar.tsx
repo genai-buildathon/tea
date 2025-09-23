@@ -1,11 +1,12 @@
 "use client";
 import React from "react";
 import { useSidebar } from "@/contexts/SidebarContext";
-import { UserProfile } from "@/components/auth/UserProfile";
-import { ModeSelector } from "@/components/main/ModeSelector";
-import { useAdkTest } from "@/contexts/AdkContext";
+import { UserProfile } from "@/components/sidebar/UserProfile";
+import { ModeSelector } from "@/components/sidebar/ModeSelector";
+import { useAdk } from "@/contexts/AdkContext";
 import { LanguageSelector } from "@/components/ui/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LogoutButton } from "@/components/sidebar/LogoutButton";
 
 interface SidebarProps {
   children?: React.ReactNode;
@@ -13,7 +14,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const { isOpen, closeSidebar } = useSidebar();
-  const { mode, setMode } = useAdkTest();
+  const { mode, setMode } = useAdk();
   const { t } = useLanguage();
 
   // モード変更ハンドラー
@@ -41,6 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ children }) => {
           {/* サイドバーヘッダー */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-800">{t("menu")}</h2>
+
             <button
               onClick={closeSidebar}
               className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -61,26 +63,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ children }) => {
               </svg>
             </button>
           </div>
+          {/* ユーザープロフィール */}
+          <div className="p-4 ">
+            <UserProfile
+              className="w-full"
+              variant="vertical"
+              showLogoutButton={true}
+            />
+          </div>
 
           {/* サイドバーコンテンツ */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* 言語選択 */}
-            <div className="p-4 border-b border-gray-200">
-              <LanguageSelector />
-            </div>
+
+            <LanguageSelector />
 
             {/* モード選択 */}
             <ModeSelector currentMode={mode} onModeChange={handleModeChange} />
 
-            {/* その他のコンテンツ */}
-            <div className="p-4">{children}</div>
-            {/* ユーザープロフィール */}
-            <div className="p-4 border-b border-gray-200">
-              <UserProfile
-                className="w-full"
-                variant="vertical"
-                showLogoutButton={true}
-              />
+            {/* ログアウトボタン */}
+            <div className="">
+              <LogoutButton variant="text" />
             </div>
           </div>
         </div>

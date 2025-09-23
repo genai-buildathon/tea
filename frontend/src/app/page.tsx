@@ -7,13 +7,13 @@ import {
 } from "@/contexts/OnboardingContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { NavProvider } from "@/contexts/NavContext";
-import { AdkTestProvider } from "@/contexts/AdkContext";
+import { AdkProvider } from "@/contexts/AdkContext";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { Header } from "../components/main/Header";
 import { Main } from "../components/main/Main";
 import { NavBar } from "../components/main/NavBar";
-import { Sidebar } from "@/components/ui/Sidebar";
+import { Sidebar } from "@/components/sidebar/Sidebar";
 
 // メインアプリコンポーネント（ログイン後）
 const AuthenticatedApp: React.FC = () => {
@@ -41,7 +41,7 @@ const AuthenticatedApp: React.FC = () => {
   }
 
   return (
-    <AdkTestProvider>
+    <AdkProvider>
       <SidebarProvider>
         <NavProvider>
           <div className="flex flex-col min-h-screen w-full max-w-md mx-auto relative">
@@ -52,7 +52,7 @@ const AuthenticatedApp: React.FC = () => {
           </div>
         </NavProvider>
       </SidebarProvider>
-    </AdkTestProvider>
+    </AdkProvider>
   );
 };
 

@@ -2,7 +2,7 @@
 import React from "react";
 import { useNav } from "@/contexts/NavContext";
 import { AnalyzerSection } from "../analyzer/AnalyzerSection";
-import { HistorySection } from "./HistorySection";
+import { HistorySection } from "../history/HistorySection";
 
 export const Main = () => {
   const { activeTab } = useNav();

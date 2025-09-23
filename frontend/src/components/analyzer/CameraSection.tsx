@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { AdkTestProvider } from "@/contexts/AdkContext";
+import { AdkProvider } from "@/contexts/AdkContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CameraDisplay } from "./CameraDisplay";
 
@@ -11,14 +11,14 @@ import { CameraDisplay } from "./CameraDisplay";
 export const CameraSection: React.FC = () => {
   return (
     <AuthProvider>
-      <AdkTestProvider>
+      <AdkProvider>
         <div className="flex flex-col items-center justify-center space-y-6 p-8">
           <div className="w-full max-w-2xl">
             {/* 統合されたカメラ表示・制御・接続管理 */}
             <CameraDisplay />
           </div>
         </div>
-      </AdkTestProvider>
+      </AdkProvider>
     </AuthProvider>
   );
 };

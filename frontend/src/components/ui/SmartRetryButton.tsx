@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useAdkTest } from "@/contexts/AdkContext";
+import { useAdk } from "@/contexts/AdkContext";
 import { RefreshCw, Clock, AlertTriangle } from "lucide-react";
 
 interface SmartRetryButtonProps {
@@ -18,7 +18,7 @@ export const SmartRetryButton: React.FC<SmartRetryButtonProps> = ({
   disabled = false,
   className = "",
 }) => {
-  const { retryCount, lastRetryTime } = useAdkTest();
+  const { retryCount, lastRetryTime } = useAdk();
   const [countdown, setCountdown] = useState(0);
   const [canRetry, setCanRetry] = useState(true);
 
@@ -123,7 +123,7 @@ export const SmartRetryButton: React.FC<SmartRetryButtonProps> = ({
  * 現在の再試行状況を詳細に表示
  */
 export const RetryStatus: React.FC = () => {
-  const { retryCount, lastRetryTime } = useAdkTest();
+  const { retryCount, lastRetryTime } = useAdk();
 
   if (retryCount === 0) return null;
 

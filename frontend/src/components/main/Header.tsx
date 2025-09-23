@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { ChasenLogo } from "./ChasenLogo";
+import { ChasenLogo } from "../ui/ChasenLogo";
 import { MenuIcon } from "@/components/ui/MenuIcon";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useLanguage } from "@/contexts/LanguageContext";

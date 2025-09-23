@@ -1,13 +1,14 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
-import { useAdkTest, ChatMessage } from "@/contexts/AdkContext";
+import { useAdk, ChatMessage } from "@/contexts/AdkContext";
 import { useCamera } from "@/hooks/useCamera";
 import { useConnection } from "@/hooks/useConnection";
 import { useSSE } from "@/hooks/useSSE";
 import { useAuth } from "@/contexts/AuthContext";
 import { AnalysisOverlay } from "./AnalysisOverlay";
-import { ErrorNotification } from "../ui/ErrorNotification";
-import { Play, Square, Camera, MessageCircle, RefreshCw } from "lucide-react";
+import { CameraSwitchButton } from "./CameraSwitchButton";
+import { AnalysisOverlayToggleFAB } from "../ui/AnalysisOverlayToggleFAB";
+import { Play, Square, Camera, RefreshCw } from "lucide-react";
 import { ConnectionStatus } from "../ui/ConnectionStatus";
 import { uploadChatPhoto } from "@/services/photoUploadService";
 import { useMetadata } from "@/hooks/useMetadata";
@@ -40,18 +41,17 @@ export const CameraDisplay: React.FC = () => {
     chatHistory,
     addChatMessage,
     esRef,
-    setLastError,
     connected,
-  } = useAdkTest();
-  const { startCamera, stopCamera, sendCurrentFrame } = useCamera();
-  const { t, language } = useLanguage();
+  } = useAdk();
   const {
-    createConnection,
-    createNewSession,
-    connectToSession,
-    creating,
-    forceDisconnectAll,
-  } = useConnection();
+    startCamera,
+    stopCamera,
+    sendCurrentFrame,
+    switchCamera,
+    cameraFacing,
+  } = useCamera();
+  const { t, language } = useLanguage();
+  const { createConnection, creating, forceDisconnectAll } = useConnection();
   const { openSse, closeSse } = useSSE();
   const { user } = useAuth();
   const { summarizeChat, metadataLoading } = useMetadata();
@@ -366,15 +366,6 @@ export const CameraDisplay: React.FC = () => {
     );
   }
 
-  // エラー再試行ハンドラー
-  const handleRetryConnection = async () => {
-    setLastError(null);
-    await forceDisconnectAll();
-    setTimeout(() => {
-      createConnection();
-    }, 1000);
-  };
-
   return (
     <div className="space-y-6">
       {/* 新規接続ボタン */}
@@ -427,6 +418,12 @@ export const CameraDisplay: React.FC = () => {
                 <Play className="w-5 h-5" />
               )}
             </button>
+            <CameraSwitchButton
+              onSwitchCamera={switchCamera}
+              disabled={!camReady}
+              currentCamera={cameraFacing}
+              size="md"
+            />
             <button
               onClick={handleSendFrame}
               disabled={!camReady || sending || !sseConnected}
@@ -488,6 +485,13 @@ export const CameraDisplay: React.FC = () => {
         onSummarySaved={(summaryId) => {
           appendLog(`要約を保存しました: ${summaryId}`);
         }}
+      />
+
+      {/* FABボタン - 解析オーバーレイトグル */}
+      <AnalysisOverlayToggleFAB
+        isAnalysisVisible={showAnalysisOverlay}
+        onToggle={() => setShowAnalysisOverlay(!showAnalysisOverlay)}
+        disabled={!analysisText}
       />
     </div>
   );

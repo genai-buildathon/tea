@@ -29,7 +29,7 @@ export interface ChatMessage {
   photoId?: string;
 }
 
-export interface AdkTestContextType {
+export interface AdkContextType {
   // 基本設定
   agent: string;
   setAgent: (agent: string) => void;
@@ -122,23 +122,21 @@ export interface AdkTestContextType {
   backendBase: string;
 }
 
-const AdkTestContext = createContext<AdkTestContextType | undefined>(undefined);
+const AdkContext = createContext<AdkContextType | undefined>(undefined);
 
-export const useAdkTest = () => {
-  const context = useContext(AdkTestContext);
+export const useAdk = () => {
+  const context = useContext(AdkContext);
   if (context === undefined) {
     throw new Error("useAdkTest must be used within an AdkTestProvider");
   }
   return context;
 };
 
-interface AdkTestProviderProps {
+interface AdkProviderProps {
   children: ReactNode;
 }
 
-export const AdkTestProvider: React.FC<AdkTestProviderProps> = ({
-  children,
-}) => {
+export const AdkProvider: React.FC<AdkProviderProps> = ({ children }) => {
   const { user } = useAuth();
 
   // 基本設定
@@ -236,7 +234,7 @@ export const AdkTestProvider: React.FC<AdkTestProviderProps> = ({
   const [retryCount, setRetryCount] = useState(0);
   const [lastRetryTime, setLastRetryTime] = useState(0);
 
-  const value: AdkTestContextType = {
+  const value: AdkContextType = {
     // 基本設定
     agent,
     setAgent,
@@ -329,7 +327,5 @@ export const AdkTestProvider: React.FC<AdkTestProviderProps> = ({
     backendBase: BACKEND_BASE,
   };
 
-  return (
-    <AdkTestContext.Provider value={value}>{children}</AdkTestContext.Provider>
-  );
+  return <AdkContext.Provider value={value}>{children}</AdkContext.Provider>;
 };

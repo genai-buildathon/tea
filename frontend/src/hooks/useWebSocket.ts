@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useMemo, useEffect } from "react";
-import { useAdkTest } from "@/contexts/AdkContext";
+import { useAdk } from "@/contexts/AdkContext";
 
 export const useWebSocket = () => {
   const {
@@ -15,7 +15,7 @@ export const useWebSocket = () => {
     setBusy,
     appendLog,
     backendBase,
-  } = useAdkTest();
+  } = useAdk();
 
   // WebSocket接続URLを生成
   const wsUrl = useMemo(() => {

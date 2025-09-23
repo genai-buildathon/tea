@@ -1,6 +1,6 @@
 "use client";
 import { useCallback } from "react";
-import { useAdkTest, ChatMessage } from "@/contexts/AdkContext";
+import { useAdk, ChatMessage } from "@/contexts/AdkContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export const useMetadata = () => {
@@ -12,7 +12,7 @@ export const useMetadata = () => {
     metadataLoading,
     setMetadataLoading,
     appendLog,
-  } = useAdkTest();
+  } = useAdk();
   const { t } = useLanguage();
 
   // セッションメタデータを生成

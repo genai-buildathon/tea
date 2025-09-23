@@ -7,7 +7,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
-import { ChatInterface } from "../main/ChatInterface";
+import { ChatInterface } from "./ChatInterface";
 import Image from "next/image";
 
 import { ChatMessage } from "@/contexts/AdkContext";

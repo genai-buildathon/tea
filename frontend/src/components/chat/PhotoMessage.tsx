@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Download, ExternalLink, Eye, EyeOff } from "lucide-react";
+import { ExternalLink, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
 interface PhotoMessageProps {

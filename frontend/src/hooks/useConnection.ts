@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect } from "react";
-import { useAdkTest } from "@/contexts/AdkContext";
+import { useAdk } from "@/contexts/AdkContext";
 import {
   findAvailableConnection,
   addConnectionToPool,
@@ -27,7 +27,7 @@ export const useConnection = () => {
     setRetryCount,
     lastRetryTime,
     setLastRetryTime,
-  } = useAdkTest();
+  } = useAdk();
 
   // レート制限チェック関数
   const checkRateLimit = useCallback(() => {

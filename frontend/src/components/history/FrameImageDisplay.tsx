@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Image, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { Image, ZoomIn, ZoomOut } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FrameImageDisplayProps {

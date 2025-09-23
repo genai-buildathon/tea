@@ -57,7 +57,7 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
   ];
 
   return (
-    <div className="p-3 border-b border-gray-200 bg-gray-50">
+    <div className="">
       <div className="mb-2">
         <h4 className="text-xs font-medium text-gray-600 uppercase tracking-wide">
           {t("analysisLevel")}

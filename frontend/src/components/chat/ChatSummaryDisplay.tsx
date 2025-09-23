@@ -9,7 +9,7 @@ import {
   Database,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { FrameImageDisplay } from "./FrameImageDisplay";
+import { FrameImageDisplay } from "../history/FrameImageDisplay";
 
 interface ChatSummaryDisplayProps {
   isVisible: boolean;

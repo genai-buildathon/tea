@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useMemo, useEffect } from "react";
-import { useAdkTest } from "@/contexts/AdkContext";
+import { useAdk } from "@/contexts/AdkContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export const useSSE = () => {
@@ -15,7 +15,7 @@ export const useSSE = () => {
     busy,
     setBusy,
     appendLog,
-  } = useAdkTest();
+  } = useAdk();
   const { language, t } = useLanguage();
 
   // SSE接続パスを生成
