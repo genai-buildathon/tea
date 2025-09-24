@@ -3,19 +3,19 @@ steps:
     args:
       - "build"
       - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyC9rTvAZRwGGMZm7ENmCiZqVBrzMH_aE1A"
+      - "NEXT_PUBLIC_FIREBASE_API_KEY=${_FIREBASE_API_KEY}"
       - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=flash-proxy-471209-q8.firebaseapp.com"
+      - "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${_FIREBASE_AUTH_DOMAIN}"
       - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_PROJECT_ID=flash-proxy-471209-q8"
+      - "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${_FIREBASE_PROJECT_ID}"
       - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=flash-proxy-471209-q8.firebasestorage.app"
+      - "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${_FIREBASE_STORAGE_BUCKET}"
       - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=760751063280"
+      - "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${_FIREBASE_MESSAGING_SENDER_ID}"
       - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_APP_ID=1:760751063280:web:b9fba087ae06fdee840235"
+      - "NEXT_PUBLIC_FIREBASE_APP_ID=${_FIREBASE_APP_ID}"
       - "--build-arg"
-      - "NEXT_PUBLIC_BACKEND_BASE=https://tea-server-760751063280.us-central1.run.app"
+      - "NEXT_PUBLIC_BACKEND_BASE=${_BACKEND_BASE}"
       - "-t"
       - "$_IMAGE_NAME"
       - "."
@@ -24,6 +24,15 @@ steps:
 
 substitutions:
   _IMAGE_NAME: "us-central1-docker.pkg.dev/flash-proxy-471209-q8/frontend/tea-frontend:latest"
+  # Firebase設定（デフォルト値、実際の値はgcloudコマンドで置換される）
+  _FIREBASE_API_KEY: ""
+  _FIREBASE_AUTH_DOMAIN: ""
+  _FIREBASE_PROJECT_ID: ""
+  _FIREBASE_STORAGE_BUCKET: ""
+  _FIREBASE_MESSAGING_SENDER_ID: ""
+  _FIREBASE_APP_ID: ""
+  # バックエンド設定
+  _BACKEND_BASE: ""
 
 options:
   logging: CLOUD_LOGGING_ONLY

@@ -98,40 +98,19 @@ build() {
   
   echo "Building image: ${IMAGE}"
   
-  # cloudbuild.yamlを動的に生成
-  cat > cloudbuild.yaml <<EOF
-steps:
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      - "build"
-      - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_API_KEY=${NEXT_PUBLIC_FIREBASE_API_KEY}"
-      - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}"
-      - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${NEXT_PUBLIC_FIREBASE_PROJECT_ID}"
-      - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}"
-      - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}"
-      - "--build-arg"
-      - "NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID}"
-      - "--build-arg"
-      - "NEXT_PUBLIC_BACKEND_BASE=${NEXT_PUBLIC_BACKEND_BASE}"
-      - "-t"
-      - "\$_IMAGE_NAME"
-      - "."
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "\$_IMAGE_NAME"]
-
-substitutions:
-  _IMAGE_NAME: "${IMAGE}"
-
-options:
-  logging: CLOUD_LOGGING_ONLY
-EOF
-
-  gcloud builds submit --config cloudbuild.yaml
+  # 既存のcloudbuild.yamlを使用し、置換変数として環境変数を渡す
+  gcloud builds submit \
+    --config cloudbuild.yaml \
+    --substitutions=\
+_IMAGE_NAME="${IMAGE}",\
+_FIREBASE_API_KEY="${NEXT_PUBLIC_FIREBASE_API_KEY}",\
+_FIREBASE_AUTH_DOMAIN="${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}",\
+_FIREBASE_PROJECT_ID="${NEXT_PUBLIC_FIREBASE_PROJECT_ID}",\
+_FIREBASE_STORAGE_BUCKET="${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}",\
+_FIREBASE_MESSAGING_SENDER_ID="${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}",\
+_FIREBASE_APP_ID="${NEXT_PUBLIC_FIREBASE_APP_ID}",\
+_BACKEND_BASE="${NEXT_PUBLIC_BACKEND_BASE}"
+  
   echo "Built: ${IMAGE}"
 }
 
